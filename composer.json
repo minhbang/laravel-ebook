@@ -1,0 +1,35 @@
+{
+    "name": "minhbang/laravel-ebook",
+    "description": "Laravel Ebook Package",
+    "keywords": [
+        "minhbang",
+        "laravel-ebook"
+    ],
+    "homepage": "https://github.com/minhbang/laravel-ebook",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Minh Bang",
+            "email": "contact@minhbang.com",
+            "homepage": "http://minhbang.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.9",
+        "illuminate/support": "~5.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Minhbang\\Ebook\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Minhbang\\Ebook\\Test\\": "tests/"
+        }
+    }
+}
