@@ -31,5 +31,8 @@ return [
     'status_pending'    => 'Chờ duyệt',
     'status_published'  => 'Đã duyệt',
 
-    'related' => 'Tài liệu có liên quan',
+    'related'        => 'Tài liệu có liên quan',
+    'featured'       => 'Đặc sắc',
+    'featured_ebook' => 'Tài liệu Đặc sắc',
+    'hit'            => 'Lần xem',
 ];

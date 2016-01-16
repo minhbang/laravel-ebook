@@ -61,6 +61,14 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-lg-12 col-md-7">
+                            <div class="form-group{{ $errors->has('featured') ? ' has-error':'' }}">
+                                {!! Form::label('featured',  trans('ebook::common.featured_ebook'), ['class'
+                                => 'control-label']) !!}<br>
+                                {!! Form::checkbox('featured', 1, null,['class'=>'switch', 'data-on-text'=>trans('common.yes'), 'data-off-text'=>trans('common.no')]) !!}
+                                @if($errors->has('featured'))
+                                    <p class="help-block">{{ $errors->first('featured') }}</p>
+                                @endif
+                            </div>
                             <div class="form-group{{ $errors->has('category_id') ? ' has-error':'' }}">
                                 {!! Form::label('category_id', trans('category::common.category'), ['class' => 'control-label']) !!}
                                 {!! Form::select('category_id', $categories, null, ['prompt' =>'', 'class' => 'form-control selectize-tree']) !!}
@@ -91,6 +99,7 @@
                                             <p class="help-block">{{ $errors->first('pyear') }}</p>
                                         @endif
                                     </div>
+
                                 </div>
                                 <div class="col-xs-6">
                                     <div class="form-group{{ $errors->has('language_id') ? ' has-error':'' }}">

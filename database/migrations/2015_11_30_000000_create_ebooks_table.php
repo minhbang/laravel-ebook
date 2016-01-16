@@ -33,7 +33,9 @@ class CreateEbooksTable extends Migration
             $table->integer('series_id')->unsigned()->nullable();
             $table->integer('user_id')->unsigned();
             $table->smallInteger('status')->default(1);
-            $table->timestamps();
+            $table->integer('hit')->unsigned()->default(0);
+            $table->boolean('featured')->default(0);
+            $table->nullableTimestamps();
         });
     }
 

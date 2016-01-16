@@ -29,8 +29,8 @@ class ServiceProvider extends BaseServiceProvider
                 __DIR__ . '/../lang'                       => base_path('resources/lang/vendor/ebook'),
                 __DIR__ . '/../config/ebook.php'            => config_path('ebook.php'),
                 __DIR__ . '/../database/migrations/' .
-                '2015_11_28_000000_create_ebooks_table.php' =>
-                    database_path('migrations/' . '2015_11_28_000000_create_ebooks_table.php'),
+                '2015_11_30_000000_create_ebooks_table.php' =>
+                    database_path('migrations/2015_11_30_000000_create_ebooks_table.php'),
             ]
         );
 

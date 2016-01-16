@@ -107,9 +107,10 @@ class Presenter extends EnumPresenter
             $model->id,
             $model->title,
             [
-                'attr'  => 'title',
-                'title' => trans("ebook::common.title"),
-                'class' => 'w-lg',
+                'attr'      => 'title',
+                'title'     => trans("ebook::common.title"),
+                'class'     => 'w-lg',
+                'placement' => 'top',
             ]
         );
         $info = "<small class='text-muted'>{$model->writer}, " . trans('ebook::common.publisher_id_th') . ": {$model->publisher}</small><br>";

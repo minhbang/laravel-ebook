@@ -264,7 +264,7 @@ class BackendController extends BaseController
      */
     public function update(EbookRequest $request, Ebook $ebook)
     {
-        $ebook->fill($request->all());
+        $ebook->fill($request->all() + ['featured' => 0]);
         $ebook->fillFeaturedImage($request);
         $ebook->fileFill($request);
         $ebook->enumDirty = true;

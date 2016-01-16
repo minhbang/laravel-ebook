@@ -37,6 +37,8 @@ use Minhbang\LaravelUser\Support\UserQuery;
  * @property integer $series_id
  * @property integer $user_id
  * @property integer $status
+ * @property integer $hit
+ * @property boolean $featured
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  * @property-read \Minhbang\Category\Item $category
@@ -45,15 +47,15 @@ use Minhbang\LaravelUser\Support\UserQuery;
  * @property-read mixed $featured_image_sm_url
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook queryDefault()
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook forSelectize($take = 50)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook except($id = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereAttributes($attributes)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook findText($column, $text)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\LaravelKit\Extensions\Model except($id = null)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\LaravelKit\Extensions\Model whereAttributes($attributes)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\LaravelKit\Extensions\Model findText($column, $text)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook status($status)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchKeyword($keyword, $columns = null)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhere($column, $operator = '=', $fn = null)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereIn($column, $fn)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereBetween($column, $fn = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereInDependent($column, $column_dependent, $fn, $empty = array())
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereInDependent($column, $column_dependent, $fn, $empty = [])
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook categorized($category = null)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withCategoryTitle()
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook notMine()
@@ -67,6 +69,7 @@ use Minhbang\LaravelUser\Support\UserQuery;
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook thisWeek($field = 'created_at')
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook thisMonth($field = 'created_at')
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withEnumTitles()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook featured()
  */
 class Ebook extends Model implements ResourceStatus, EnumContract
 {
@@ -98,7 +101,7 @@ class Ebook extends Model implements ResourceStatus, EnumContract
     protected $presenter = Presenter::class;
     protected $fillable = [
         'title', 'slug', 'summary', 'pyear', 'pages', 'category_id', 'language_id', 'security_id',
-        'writer_id', 'publisher_id', 'pplace_id', 'series_id',
+        'writer_id', 'publisher_id', 'pplace_id', 'series_id', 'featured',
     ];
     /**
      * Các columns có thể search
@@ -151,6 +154,15 @@ class Ebook extends Model implements ResourceStatus, EnumContract
         return $query->select("{$this->table}.*");
     }
 
+    /**
+     * @param \Illuminate\Database\Query\Builder|static $query
+     *
+     * @return \Illuminate\Database\Query\Builder|static
+     */
+    public function scopeFeatured($query)
+    {
+        return $query->where("{$this->table}.featured", 1);
+    }
     /**
      * Lấy $take ebooks phục vụ selectize ebooks
      *

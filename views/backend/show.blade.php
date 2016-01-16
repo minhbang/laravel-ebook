@@ -31,22 +31,14 @@
                     <td>{{ trans('ebook::common.featured_image') }}</td>
                     <td>{!! $ebook->present()->featured_image_lightbox !!}</td>
                 </tr>
-                <tr>
-                    <td>{{ trans('ebook::common.user_id') }}</td>
-                    <td><strong>{{ $ebook->user->username }}</strong></td>
-                </tr>
-                <tr>
-                    <td>{{ trans('common.created_at') }}</td>
-                    <td>{!! $ebook->present()->createdAt !!}</td>
-                </tr>
-                <tr>
-                    <td>{{ trans('common.updated_at') }}</td>
-                    <td>{!! $ebook->present()->updatedAt !!}</td>
-                </tr>
             </table>
         </div>
         <div class="col-md-6">
             <table class="table table-hover table-striped table-bordered table-detail">
+                <tr>
+                    <td>{{ trans('ebook::common.featured') }}</td>
+                    <td>{!! Html::yesNoLabel($ebook->featured, trans('common.yes'), trans('common.no')) !!}</td>
+                </tr>
                 <tr>
                     <td>{{ trans('ebook::common.security_id') }}</td>
                     <td>{!! $ebook->present()->securityFormated !!}</td>
@@ -72,10 +64,28 @@
                     <td><strong>{{ $ebook->present()->pplace }}</strong></td>
                 </tr>
                 <tr>
-                    <td>{{ trans('ebook::common.summary') }}</td>
-                    <td>{!! $ebook->summary !!}</td>
+                    <td>{{ trans('ebook::common.user_id') }}</td>
+                    <td><strong>{{ $ebook->user->username }}</strong></td>
+                </tr>
+                <tr>
+                    <td>{{ trans('common.created_at') }}</td>
+                    <td>{!! $ebook->present()->createdAt !!}</td>
+                </tr>
+                <tr>
+                    <td>{{ trans('common.updated_at') }}</td>
+                    <td>{!! $ebook->present()->updatedAt !!}</td>
+                </tr>
+                <tr>
+                    <td>{{ trans('ebook::common.hit') }}</td>
+                    <td><code>{{$ebook->hit}}</code></td>
                 </tr>
             </table>
         </div>
     </div>
+    <table class="table table-hover table-striped table-bordered table-detail">
+        <tr>
+            <td>{{ trans('ebook::common.summary') }}</td>
+            <td>{!! $ebook->summary !!}</td>
+        </tr>
+    </table>
 @stop
