@@ -3,7 +3,9 @@
 namespace Minhbang\Ebook;
 
 use Illuminate\Routing\Router;
-use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use Minhbang\Kit\Extensions\BaseServiceProvider;
+use Minhbang\Enum\Enum;
+use Status;
 
 /**
  * Class ServiceProvider
@@ -25,22 +27,29 @@ class ServiceProvider extends BaseServiceProvider
         $this->loadViewsFrom(__DIR__ . '/../views', 'ebook');
         $this->publishes(
             [
-                __DIR__ . '/../views'                      => base_path('resources/views/vendor/ebook'),
-                __DIR__ . '/../lang'                       => base_path('resources/lang/vendor/ebook'),
-                __DIR__ . '/../config/ebook.php'            => config_path('ebook.php'),
-                __DIR__ . '/../database/migrations/' .
-                '2015_11_30_000000_create_ebooks_table.php' =>
-                    database_path('migrations/2015_11_30_000000_create_ebooks_table.php'),
+                __DIR__ . '/../views'            => base_path('resources/views/vendor/ebook'),
+                __DIR__ . '/../lang'             => base_path('resources/lang/vendor/ebook'),
+                __DIR__ . '/../config/ebook.php' => config_path('ebook.php'),
             ]
         );
-
-        if (config('ebook.add_route') && !$this->app->routesAreCached()) {
-            require __DIR__ . '/routes.php';
-        }
+        $this->publishes(
+            [
+                __DIR__ . '/../database/migrations/2015_11_30_000000_create_ebooks_table.php' =>
+                    database_path('migrations/2015_11_30_000000_create_ebooks_table.php'),
+            ],
+            'db'
+        );
+        
+        $this->mapWebRoutes($router, __DIR__ . '/routes.php', config('ebook.add_route'));
+        
         // pattern filters
         $router->pattern('ebook', '[0-9]+');
         // model bindings
         $router->model('ebook', 'Minhbang\Ebook\Ebook');
+
+        Enum::registerResources([Ebook::class]);
+        
+        Status::register('ebook', config('ebook.status_manager'));
     }
 
     /**
