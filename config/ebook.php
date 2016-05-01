@@ -1,7 +1,7 @@
 <?php
 return [
     // Hình bài tài liệu, lưu trong thư mục con của <upload_path>
-    'featured_image' => [
+    'featured_image'     => [
         'dir'       => 'images/ebooks',
         'width'     => 280,
         'height'    => 424,
@@ -14,16 +14,29 @@ return [
      * Thư mục chứa file Tài liệu số
      * Là thư mục con của <root>/storage/data
      */
-    'data_dir'       => 'ebooks',
+    'data_dir'           => 'ebooks',
     /**
      * Tự động add các route
      */
-    'add_route'      => true,
+    'add_route'          => true,
     /**
      * Khai báo middleware cho Controller
      */
-    'middlewares'    => [
-        'frontend' => 'auth',
-        'backend'  => 'admin',
+    'middleware'         => 'role:sys.admin',
+    /**
+     * Status manager
+     */
+    'status_manager'     => \Minhbang\ILib\EbookStatus::class,
+    'category_max_depth' => 5,
+
+    // Định nghĩa menus cho ebook
+    'menus'              => [
+        'backend.sidebar.content.ebook' => [
+            'priority' => 4,
+            'url'      => 'route:backend.ebook.index',
+            'label'    => 'trans:ebook::common.ebooks',
+            'icon'     => 'fa-book',
+            'active'   => 'backend/ebook*',
+        ],
     ],
 ];

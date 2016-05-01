@@ -2,7 +2,7 @@
 return [
     'ebook'            => 'Tài liệu',
     'ebooks'           => 'Tài liệu số',
-    'manage_title'     => 'Danh sách Tài liệu <small>sắp xếp theo thời gian chỉnh sửa</small>',
+    'manage_title'     => 'Danh sách Tài liệu <span class="text-primary">:status</span> <small>sắp xếp theo thời gian chỉnh sửa</small>',
     'main_info'        => 'Thông tin chính',
     'additional_info'  => 'Thông tin bổ sung',
     'title'            => 'Tiêu đề',
@@ -25,14 +25,14 @@ return [
     'user_id'          => 'Người tạo',
     'file_hint_create' => 'Chọn file Tài liệu số',
     'file_hint_edit'   => 'Bỏ qua nếu không muốn thay đổi file',
+    
+    'save_pending'   => 'Lưu & Trình duyệt',
+    'save_published' => 'Lưu & Duyệt',
 
-    'status'            => 'Trạng thái',
-    'status_processing' => 'Đang biên mục',
-    'status_pending'    => 'Chờ duyệt',
-    'status_published'  => 'Đã duyệt',
 
     'related'        => 'Tài liệu có liên quan',
     'featured'       => 'Đặc sắc',
     'featured_ebook' => 'Tài liệu Đặc sắc',
     'hit'            => 'Lần xem',
+    'uploader'       => 'Người chia sẻ',
 ];

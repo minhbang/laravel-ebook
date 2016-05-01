@@ -2,29 +2,33 @@
 namespace Minhbang\Ebook;
 
 use Minhbang\Enum\EnumPresenter;
-use Form;
 use Html;
-use Minhbang\LaravelKit\Traits\Presenter\DatetimePresenter;
-use Minhbang\LaravelKit\Traits\Presenter\FilePresenter;
+use Minhbang\Kit\Traits\Presenter\DatetimePresenter;
+use Minhbang\Kit\Traits\Presenter\FilePresenter;
+use Minhbang\Status\StatusPresenter;
 
 /**
  * Class Presenter
  *
+ * @property-read Ebook $entity
  * @package Minhbang\Ebook
  */
 class Presenter extends EnumPresenter
 {
     use DatetimePresenter;
     use FilePresenter;
+    use StatusPresenter;
 
     /**
+     * @param string $except
+     *
      * @return string
      */
     public function securityFormated($except = null)
     {
         $css = $this->entity->security_params;
 
-        return $css === $except ? '' : "<span class=\"label label-{$css}\">{$this->entity->security}</span>";
+        return $css && $except && ($css === $except) ? '' : "<span class=\"label label-{$css}\">{$this->entity->security}</span>";
     }
 
     /**
@@ -41,29 +45,6 @@ class Presenter extends EnumPresenter
     public function summary()
     {
         return str_limit($this->entity->summary, setting('display.summary_limit'));
-    }
-
-    /**
-     * @return mixed
-     */
-    public function status()
-    {
-        $statuses = $this->entity->statuses();
-        $csses = $this->entity->statusCss();
-        $lists = [];
-        foreach ($statuses as $status => $title) {
-            $lists[] = [
-                'value'      => $status,
-                'text'       => $title,
-                'attributes' => [
-                    'data-url'  => route('backend.ebook.status', ['ebook' => $this->entity->id, 'status' => $status]),
-                    'data-type' => $csses[$status],
-                ],
-            ];
-        }
-
-        return Form::select('status', $lists, $this->entity->status, ['class' => 'select-btngroup', 'data-size' =>
-            'xs']);
     }
 
     /**
@@ -90,7 +71,7 @@ class Presenter extends EnumPresenter
      */
     public function featured_image_lightbox()
     {
-        $img = $this->featured_image('', true);
+        $img = $this->featured_image('', true, false, '_sm');
 
         return "<a href=\"{$this->entity->featured_image_url}\" data-lightbox=\"ebook-{$this->entity->id}\">{$img}</a>";
     }
@@ -103,7 +84,7 @@ class Presenter extends EnumPresenter
         /** @var \Minhbang\Ebook\Ebook $model */
         $model = $this->entity;
 
-        $title = Html::linkQuickUpdate(
+        $title = $model->canUpdate() ? Html::linkQuickUpdate(
             $model->id,
             $model->title,
             [
@@ -112,7 +93,21 @@ class Presenter extends EnumPresenter
                 'class'     => 'w-lg',
                 'placement' => 'top',
             ]
-        );
+        ) : $model->title;
+        $info = "<small class='text-muted'>{$model->writer}, " . trans('ebook::common.publisher_id_th') . ": {$model->publisher}</small><br>";
+        $info .= "<small class='text-muted'>{$this->fileicon()} {$this->filesize()} - {$this->createdAt()}</small>";
+
+        return "<div class=\"title\">{$title}</div><div class=\"info\">{$info}</div>";
+    }
+
+    /**
+     * @return string
+     */
+    public function title_block_1()
+    {
+        /** @var \Minhbang\Ebook\Ebook $model */
+        $model = $this->entity;
+        $title = '<a href="' . route('ilib.backend.ebook.show', ['ebook' => $model->id]) . '">' . $model->title . '</a>';
         $info = "<small class='text-muted'>{$model->writer}, " . trans('ebook::common.publisher_id_th') . ": {$model->publisher}</small><br>";
         $info .= "<small class='text-muted'>{$this->fileicon()} {$this->filesize()} - {$this->createdAt()}</small>";
 

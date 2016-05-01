@@ -1,14 +1,15 @@
 <?php
 namespace Minhbang\Ebook;
 
-use Minhbang\LaravelKit\Extensions\BackendController as BaseController;
+use Minhbang\Kit\Extensions\BackendController as BaseController;
 use Minhbang\Ebook\Request as EbookRequest;
-use Minhbang\LaravelKit\Traits\Controller\QuickUpdateActions;
+use Minhbang\Kit\Traits\Controller\QuickUpdateActions;
 use Session;
 use Request;
 use Datatable;
-use Minhbang\LaravelKit\Support\VnString;
+use Minhbang\Kit\Support\VnString;
 use Html;
+use Response;
 
 /**
  * Class Controller
@@ -19,52 +20,96 @@ class BackendController extends BaseController
 {
     use QuickUpdateActions;
     /**
-     * @var \Minhbang\Category\Manager
+     * @var \Minhbang\Category\Root
      */
     protected $categoryManager;
+    /**
+     * @var \Minhbang\Status\Managers\StatusManager
+     */
+    protected $statusManager;
+    /**
+     * @var int
+     */
+    protected $status;
+    /**
+     * Admin có thể set tất cả status (dropdown) hay chạy 'Qui trình' set status từng bước (button)
+     *
+     * @var bool
+     */
+    protected $allStatus = true;
+
+    /**
+     * @param null|string $status
+     */
+    protected function switchStatus($status = null)
+    {
+        $key = 'backend.ebook.status';
+        $status = is_null($status) ? session($key, $this->statusManager->valueDefault()) : $status;
+        if ($this->statusManager->checkStatus($status)) {
+            $status = $this->statusManager->valueStatus($status);
+            $this->status = $status;
+            session([$key => $status]);
+        } else {
+            Session::forget($key);
+            abort(404, trans('common.status_invalid'));
+        }
+    }
 
     /**
      * Controller constructor.
+     *
+     * @param \Minhbang\Ebook\Ebook $ebook
      */
-    public function __construct()
+    public function __construct(Ebook $ebook)
     {
         parent::__construct();
-        $this->categoryManager = app('category')->manage('ebook');
+        $this->categoryManager = $ebook->categoryManager();
+        $this->statusManager = $ebook->statusManager();
+        $this->switchStatus();
     }
 
     /**
      *
+     * @param \Minhbang\Ebook\Ebook $ebook
+     * @param int $status
+     *
      * @return \Illuminate\View\View
+     * @throws \Exception
      */
-    public function index()
+    public function index(Ebook $ebook, $status = null)
     {
+        $this->switchStatus($status);
         $tableOptions = [
             'id'        => 'ebook-manage',
             'class'     => 'table-ebooks',
             'row_index' => true,
         ];
+
         $options = [
             'aoColumnDefs' => [
                 ['sClass' => 'min-width text-right', 'aTargets' => [0]],
-                ['sClass' => 'min-width', 'aTargets' => [1, -1]],
-                ['sClass' => 'min-width text-right', 'aTargets' => [-2, -3]],
+                ['sClass' => 'min-width', 'aTargets' => [1]],
+                ['sClass' => 'min-width text-right', 'aTargets' => [-1, -2]],
             ],
         ];
-        $table = Datatable::table()
+        $table = Datatable::table()->setOptions($options)->setCustomValues($tableOptions)
             ->addColumn(
                 '',
                 trans('ebook::common.featured_image'),
                 trans('ebook::common.ebook'),
                 trans('ebook::common.security_id'),
-                trans('ebook::common.status'),
                 trans('common.actions')
-            )
-            ->setOptions($options)
-            ->setCustomValues($tableOptions);
+            );
         $name = trans('ebook::common.ebooks');
-        $this->buildHeading([trans('common.manage'), $name], 'fa-file-pdf-o', ['#' => $name]);
+        $this->buildHeading(
+            [trans('common.manage'), $name],
+            'fa-file-pdf-o',
+            ['#' => $name],
+            $ebook->present()->buttons($this->status, route($this->route_prefix . 'backend.ebook.index_status', ['status' => 'STATUS']))
+        );
+        $current = $this->statusManager->statusTitle($this->status);
 
-        return view('ebook::backend.index', compact('tableOptions', 'options', 'table'));
+        return view('ebook::backend.index', compact('tableOptions', 'options', 'table', 'current'));
     }
 
 
@@ -76,7 +121,7 @@ class BackendController extends BaseController
     public function data()
     {
         /** @var \Minhbang\Ebook\Ebook $query */
-        $query = Ebook::queryDefault()->withEnumTitles()->orderUpdated();
+        $query = Ebook::queryDefault()->status($this->status)->orderUpdated()->withEnumTitles();
         if (Request::has('search_form')) {
             $query = $query
                 ->searchWhereBetween('ebooks.created_at', 'mb_date_vn2mysql')
@@ -84,6 +129,12 @@ class BackendController extends BaseController
         }
 
         return Datatable::query($query)
+            ->addColumn(
+                'index',
+                function (Ebook $model) {
+                    return $model->id;
+                }
+            )
             ->addColumn(
                 'index',
                 function (Ebook $model) {
@@ -109,38 +160,36 @@ class BackendController extends BaseController
                 }
             )
             ->addColumn(
-                'status',
-                function (Ebook $model) {
-                    return $model->present()->status;
-                }
-            )
-            ->addColumn(
                 'actions',
                 function (Ebook $model) {
-                    return Html::tableActions(
+                    $url = route($this->route_prefix . 'backend.ebook.status', ['ebook' => $model->id, 'status' => 'STATUS']);
+                    $statuses = $this->allStatus ?
+                        $model->present()->status($url) . '<br>' : $model->present()->statusActions($url);
+
+                    return $statuses . Html::tableActions(
                         $this->route_prefix . 'backend.ebook',
                         ['ebook' => $model->id],
                         $model->title,
                         trans('ebook::common.ebook'),
                         [
                             'renderPreview' => 'link',
-                            'renderEdit'    => 'link',
+                            'renderEdit'    => $model->canUpdate() ? 'link' : 'disabled',
+                            'renderDelete'  => $model->canDelete() ? 'link' : 'disabled',
                             'renderShow'    => 'link',
                         ]
                     );
                 }
             )
-            ->searchColumns('ebooks.title')
-            ->make();
+            ->searchColumns('ebooks.title')->make();
     }
 
     /**
+     * @param \Minhbang\Ebook\Ebook $ebook
+     *
      * @return \Illuminate\View\View
-     * @throws \Laracasts\Presenter\Exceptions\PresenterException
      */
-    public function create()
+    public function create(Ebook $ebook)
     {
-        $ebook = new Ebook();
         $url = route($this->route_prefix . 'backend.ebook.store');
         $method = 'post';
         $categories = $this->categoryManager->selectize();
@@ -149,7 +198,7 @@ class BackendController extends BaseController
             'plus-sign',
             [
                 route($this->route_prefix . 'backend.ebook.index') => trans('ebook::common.ebook'),
-                '#' => trans('common.create')
+                '#'                                                => trans('common.create'),
             ]
         );
         $file_hint = trans('ebook::common.file_hint_create');
@@ -172,6 +221,7 @@ class BackendController extends BaseController
         $ebook->fillFeaturedImage($request);
         $ebook->fileFill($request);
         $ebook->user_id = user('id');
+        $ebook->fillStatus($request->get('s'));
         $ebook->save();
         Session::flash(
             'message',
@@ -192,6 +242,7 @@ class BackendController extends BaseController
     public function show(Ebook $ebook)
     {
         $name = trans('ebook::common.ebooks');
+        $canUpdate = $ebook->canUpdate();
         $this->buildHeading(
             [trans('common.view_detail'), $name],
             'list',
@@ -203,9 +254,9 @@ class BackendController extends BaseController
                     ['icon' => 'list', 'size' => 'sm', 'type' => 'success'],
                 ],
                 [
-                    route($this->route_prefix . 'backend.ebook.edit', ['ebook' => $ebook->id]),
-                    trans('common.edit'),
-                    ['icon' => 'edit', 'size' => 'sm', 'type' => 'primary'],
+                    $canUpdate ? route($this->route_prefix . 'backend.ebook.edit', ['ebook' => $ebook->id]) : '#',
+                    trans('ilib::common.edit'),
+                    ['icon' => 'edit', 'size' => 'sm', 'type' => 'primary', 'class' => $canUpdate ? null : 'disabled'],
                 ],
                 [
                     route($this->route_prefix . 'backend.ebook.preview', ['ebook' => $ebook->id]),
@@ -215,6 +266,7 @@ class BackendController extends BaseController
             ]
         );
         $ebook = $ebook->loadInfo();
+
         return view('ebook::backend.show', compact('ebook'));
     }
 
@@ -238,22 +290,30 @@ class BackendController extends BaseController
      */
     public function edit(Ebook $ebook)
     {
-        $url = route($this->route_prefix . 'backend.ebook.update', ['ebook' => $ebook->id]);
-        $method = 'put';
-        $categories = $this->categoryManager->selectize();
-        $name = trans('ebook::common.ebooks');
-        $this->buildHeading(
-            [trans('common.update'), $name],
-            'edit',
-            [route($this->route_prefix . 'backend.ebook.index') => $name, '#' => trans('common.edit')]
-        );
-        $ebook->enumRestore();
-        $file_hint = trans('ebook::common.file_hint_edit');
+        if ($ebook->canUpdate()) {
+            $url = route($this->route_prefix . 'backend.ebook.update', ['ebook' => $ebook->id]);
+            $method = 'put';
+            $categories = $this->categoryManager->selectize();
+            $name = trans('ebook::common.ebooks');
+            $this->buildHeading(
+                [trans('common.update'), $name],
+                'edit',
+                [route($this->route_prefix . 'backend.ebook.index') => $name, '#' => trans('common.edit')]
+            );
+            $ebook->enumRestore();
+            $file_hint = trans('ebook::common.file_hint_edit');
 
-        return view(
-            'ebook::backend.form',
-            compact('ebook', 'categories', 'url', 'method', 'categories', 'file_hint') + $ebook->loadEnums()
-        );
+            return view(
+                'ebook::backend.form',
+                compact('ebook', 'categories', 'url', 'method', 'categories', 'file_hint') + $ebook->loadEnums()
+            );
+        } else {
+            return view('message', [
+                'module'  => trans('ilib::common.ilib'),
+                'type'    => 'danger',
+                'content' => trans('ilib::common.messages.unable_update'),
+            ]);
+        }
     }
 
     /**
@@ -264,18 +324,30 @@ class BackendController extends BaseController
      */
     public function update(EbookRequest $request, Ebook $ebook)
     {
-        $ebook->fill($request->all() + ['featured' => 0]);
-        $ebook->fillFeaturedImage($request);
-        $ebook->fileFill($request);
-        $ebook->enumDirty = true;
-        $ebook->save();
-        Session::flash(
-            'message',
-            [
-                'type'    => 'success',
-                'content' => trans('common.update_object_success', ['name' => trans('ebook::common.ebooks')]),
-            ]
-        );
+        if ($ebook->canUpdate()) {
+            $ebook->fill($request->all() + ['featured' => 0]);
+            $ebook->fillFeaturedImage($request);
+            $ebook->fileFill($request);
+            $ebook->user_id = user('id');
+            $ebook->fillStatus($request->get('s'));
+            $ebook->enumDirty = true;
+            $ebook->save();
+            Session::flash(
+                'message',
+                [
+                    'type'    => 'success',
+                    'content' => trans('common.update_object_success', ['name' => trans('ebook::common.ebooks')]),
+                ]
+            );
+        } else {
+            Session::flash(
+                'message',
+                [
+                    'type'    => 'danger',
+                    'content' => trans('ilib::common.messages.unable_update'),
+                ]
+            );
+        }
 
         return redirect(route($this->route_prefix . 'backend.ebook.index'));
     }
@@ -288,14 +360,23 @@ class BackendController extends BaseController
      */
     public function destroy(Ebook $ebook)
     {
-        $ebook->delete();
+        if ($ebook->canDelete()) {
+            $ebook->delete();
 
-        return response()->json(
-            [
-                'type'    => 'success',
-                'content' => trans('common.delete_object_success', ['name' => trans('ebook::common.ebooks')]),
-            ]
-        );
+            return Response::json(
+                [
+                    'type'    => 'success',
+                    'content' => trans('common.delete_object_success', ['name' => trans('ebook::common.ebooks')]),
+                ]
+            );
+        } else {
+            return Response::json(
+                [
+                    'type'    => 'danger',
+                    'content' => trans('ilib::common.messages.unable_delete'),
+                ]
+            );
+        }
     }
 
     /**
@@ -306,9 +387,9 @@ class BackendController extends BaseController
      */
     public function status(Ebook $ebook, $status)
     {
-        $result = $ebook->statusUpdate($status) ? 'success' : 'error';
+        $result = $ebook->updateStatus($status) ? 'success' : 'error';
 
-        return response()->json(['type' => $result, 'content' => trans("common.status_{$result}")]);
+        return Response::json(['type' => $result, 'content' => trans("common.status_{$result}")]);
     }
 
     /**
@@ -331,5 +412,15 @@ class BackendController extends BaseController
                 'label' => trans('ebook::common.title'),
             ],
         ];
+    }
+
+    /**
+     * @param Ebook $model
+     *
+     * @return bool
+     */
+    protected function quickUpdateAllowed($model)//, $attribute, $value)
+    {
+        return $model->canUpdate();
     }
 }

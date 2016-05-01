@@ -22,14 +22,14 @@ class CreateEbooksTable extends Migration
             $table->integer('filesize')->unsigned();
             $table->text('summary')->nullable();
             $table->string('featured_image', 255)->nullable();
-            $table->integer('pyear')->unsigned()->nullable(); //new
+            $table->integer('pyear')->unsigned()->nullable();
             $table->integer('pages')->unsigned()->nullable();
-            $table->integer('category_id')->unsigned();
-            $table->integer('language_id')->unsigned();
-            $table->integer('security_id')->unsigned();
-            $table->integer('writer_id')->unsigned();
-            $table->integer('publisher_id')->unsigned();
-            $table->integer('pplace_id')->unsigned()->nullable();//new
+            $table->integer('category_id')->unsigned()->nullable();
+            $table->integer('language_id')->unsigned()->nullable();
+            $table->integer('security_id')->unsigned()->nullable();
+            $table->integer('writer_id')->unsigned()->nullable();
+            $table->integer('publisher_id')->unsigned()->nullable();
+            $table->integer('pplace_id')->unsigned()->nullable();
             $table->integer('series_id')->unsigned()->nullable();
             $table->integer('user_id')->unsigned();
             $table->smallInteger('status')->default(1);

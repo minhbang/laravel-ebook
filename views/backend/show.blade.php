@@ -36,6 +36,10 @@
         <div class="col-md-6">
             <table class="table table-hover table-striped table-bordered table-detail">
                 <tr>
+                    <td>{{ trans('ebook::common.status') }}</td>
+                    <td>{!! $ebook->present()->statusFormatted !!}</td>
+                </tr>
+                <tr>
                     <td>{{ trans('ebook::common.featured') }}</td>
                     <td>{!! Html::yesNoLabel($ebook->featured, trans('common.yes'), trans('common.no')) !!}</td>
                 </tr>
@@ -50,6 +54,10 @@
                 <tr>
                     <td>{{ trans('ebook::common.writer_id') }}</td>
                     <td><strong>{{ $ebook->present()->writer }}</strong></td>
+                </tr>
+                <tr>
+                    <td>{{ trans('ebook::common.pages') }}</td>
+                    <td><strong>{{ $ebook->pages }}</strong></td>
                 </tr>
                 <tr>
                     <td>{{ trans('ebook::common.pyear') }}</td>

@@ -1,7 +1,7 @@
 <?php
 namespace Minhbang\Ebook;
 
-use Minhbang\LaravelKit\Extensions\Request as BaseRequest;
+use Minhbang\Kit\Extensions\Request as BaseRequest;
 
 /**
  * Class Request
@@ -15,11 +15,13 @@ class Request extends BaseRequest
         'title'        => 'required|max:255',
         'slug'         => 'required|max:255|alpha_dash',
         'summary'      => 'required',
+        'pages'        => 'integer',
         'pyear'        => 'integer',
         'language_id'  => 'required',
         'security_id'  => 'required',
         'writer_id'    => 'required',
         'publisher_id' => 'required',
+        'filename'     => 'mimes:pdf|max:40960', // 40 Mb = 40*1024 Kb
     ];
 
     /**
@@ -39,6 +41,13 @@ class Request extends BaseRequest
      */
     public function rules()
     {
+        /** @var \Minhbang\Ebook\Ebook $ebook */
+        if ($ebook = $this->route('ebook')) {
+            //update Ebook
+        } else {
+            //create Ebook
+            $this->rules['filename'] .= '|required';
+        }
         return $this->rules;
     }
 

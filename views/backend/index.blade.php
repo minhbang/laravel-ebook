@@ -32,7 +32,7 @@
     </div>
     <div class="ibox ibox-table">
         <div class="ibox-title">
-            <h5>{!! trans('ebook::common.manage_title') !!}</h5>
+            <h5>{!! trans('ebook::common.manage_title', ['status' => $current]) !!}</h5>
             <div class="ibox-tools"><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></div>
         </div>
         <div class="ibox-content">

@@ -1,18 +1,19 @@
 <?php
 namespace Minhbang\Ebook;
 
+use Carbon\Carbon;
 use Laracasts\Presenter\PresentableTrait;
-use Minhbang\AccessControl\Contracts\ResourceStatus;
-use Minhbang\AccessControl\Traits\Resource\HasStatus;
+use Minhbang\Status\Traits\Statusable;
 use Minhbang\Category\Categorized;
 use Minhbang\Enum\EnumContract;
 use Minhbang\Enum\HasEnum;
-use Minhbang\LaravelKit\Extensions\Model;
-use Minhbang\LaravelKit\Traits\Model\DatetimeQuery;
-use Minhbang\LaravelKit\Traits\Model\FeaturedImage;
-use Minhbang\LaravelKit\Traits\Model\HasFile;
-use Minhbang\LaravelKit\Traits\Model\SearchQuery;
-use Minhbang\LaravelUser\Support\UserQuery;
+use Minhbang\Kit\Extensions\Model;
+use Minhbang\Kit\Traits\Model\DatetimeQuery;
+use Minhbang\Kit\Traits\Model\FeaturedImage;
+use Minhbang\Kit\Traits\Model\HasFile;
+use Minhbang\Kit\Traits\Model\SearchQuery;
+use Minhbang\User\Support\UserQuery;
+use DB;
 
 /**
  * Class Ebook
@@ -41,21 +42,48 @@ use Minhbang\LaravelUser\Support\UserQuery;
  * @property boolean $featured
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * @property-read \Minhbang\Category\Item $category
- * @property-read \Minhbang\LaravelUser\User $user
+ * @property-read mixed $url
+ * @property-read mixed $status_title
+ * @property-read \Minhbang\Category\Category $category
+ * @property-read \Minhbang\User\User $user
  * @property-read mixed $featured_image_url
  * @property-read mixed $featured_image_sm_url
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereId($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereTitle($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSlug($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFilename($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFilemime($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFilesize($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSummary($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFeaturedImage($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePyear($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePages($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereCategoryId($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereLanguageId($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSecurityId($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereWriterId($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePublisherId($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePplaceId($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSeriesId($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereUserId($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereStatus($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereHit($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFeatured($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereCreatedAt($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereUpdatedAt($value)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook queryDefault()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook featured()
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook forSelectize($take = 50)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\LaravelKit\Extensions\Model except($id = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\LaravelKit\Extensions\Model whereAttributes($attributes)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\LaravelKit\Extensions\Model findText($column, $text)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook status($status)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model except($id = null)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model whereAttributes($attributes)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model findText($column, $text)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchKeyword($keyword, $columns = null)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhere($column, $operator = '=', $fn = null)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereIn($column, $fn)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereBetween($column, $fn = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereInDependent($column, $column_dependent, $fn, $empty = [])
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereInDependent($column, $column_dependent, $fn, $empty = array())
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook status($status)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook published()
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook categorized($category = null)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withCategoryTitle()
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook notMine()
@@ -69,26 +97,12 @@ use Minhbang\LaravelUser\Support\UserQuery;
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook thisWeek($field = 'created_at')
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook thisMonth($field = 'created_at')
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withEnumTitles()
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook featured()
+ * @mixin \Eloquent
  */
-class Ebook extends Model implements ResourceStatus, EnumContract
+class Ebook extends Model implements EnumContract
 {
-    /**
-     * Đang biên mục: chỉ nhân viên thư viện được phép xem
-     * Mặc định
-     */
-    const STATUS_PROCESSING = 1;
-    /**
-     * Chờ duyệt: chỉ nhân viên và phụ trách thư viện được xem
-     */
-    const STATUS_PENDING = 2;
-    /**
-     * Đã xuất bản: được phép xem
-     */
-    const STATUS_PUBLISHED = 3;
-
     use SearchQuery;
-    use HasStatus;
+    use Statusable;
     use Categorized;
     use UserQuery;
     use PresentableTrait;
@@ -112,7 +126,7 @@ class Ebook extends Model implements ResourceStatus, EnumContract
      * @var array
      */
     protected $searchable = ['title'];
-
+    
     /**
      * Ebook constructor.
      *
@@ -124,6 +138,29 @@ class Ebook extends Model implements ResourceStatus, EnumContract
         $this->config([
             'featured_image' => config('ebook.featured_image'),
         ]);
+    }
+
+    /**
+     * Cập nhật thông tin khi Reader đọc toàn văn ebook này
+     *
+     * @return bool
+     */
+    public function updateRead()
+    {
+        /** @var \Minhbang\User\User $user */
+        $user = user();
+        if (!$user->isSysSadmin() && !$user->hasRole('tv.*')) {
+            DB::table('read_ebook')->insert([
+                'reader_id' => $user->id,
+                'ebook_id'  => $this->id,
+                'read_at'   => Carbon::now(),
+            ]);
+        }
+
+        $this->timestamps = false;
+        $this->hit += 1;
+
+        return $this->save();
     }
 
     /**
@@ -141,7 +178,8 @@ class Ebook extends Model implements ResourceStatus, EnumContract
      */
     public function related($limit = 9)
     {
-        return static::queryDefault()->except()->withEnumTitles()->categorized($this->category)->orderUpdated()->take($limit);
+        return static::queryDefault()->except()->withEnumTitles()
+            ->categorized($this->category)->orderUpdated()->take($limit);
     }
 
     /**
@@ -163,6 +201,7 @@ class Ebook extends Model implements ResourceStatus, EnumContract
     {
         return $query->where("{$this->table}.featured", 1);
     }
+
     /**
      * Lấy $take ebooks phục vụ selectize ebooks
      *
@@ -177,48 +216,11 @@ class Ebook extends Model implements ResourceStatus, EnumContract
     }
 
     /**
-     * Hook các events của model
-     *
-     * @return void
+     * @return string
      */
-    public static function boot()
+    public function getUrlAttribute()
     {
-        parent::boot();
-        // trước khi xóa $model, sẽ xóa hình bìa của nó
-        static::deleting(
-            function ($model) {
-                /** @var static $model */
-                $model->deleteFeaturedImage();
-            }
-        );
-    }
-
-    /**
-     * All statuses
-     *
-     * @return array
-     */
-    public function statuses()
-    {
-        return [
-            static::STATUS_PROCESSING => trans('ebook::common.status_processing'),
-            static::STATUS_PENDING    => trans('ebook::common.status_pending'),
-            static::STATUS_PUBLISHED  => trans('ebook::common.status_published'),
-        ];
-    }
-
-    /**
-     * All statuses
-     *
-     * @return array
-     */
-    public function statusCss()
-    {
-        return [
-            static::STATUS_PROCESSING => 'default',
-            static::STATUS_PENDING    => 'danger',
-            static::STATUS_PUBLISHED  => 'primary',
-        ];
+        return $this->id ? route('ilib.ebook.detail', ['ebook' => $this->id]) : null;
     }
 
     /**
@@ -274,5 +276,25 @@ class Ebook extends Model implements ResourceStatus, EnumContract
             'size' => 'filesize',
             'dir'  => storage_path('data/' . config('ebook.data_dir')),
         ];
+    }
+    
+    /**
+     * User hiện tại có thể DELETE ebook này không?
+     *
+     * @return bool
+     */
+    public function canDelete()
+    {
+        return $this->statusManager()->canDelete($this->status);
+    }
+
+    /**
+     * User hiện tại có thể UPDATE ebook này không?
+     *
+     * @return bool
+     */
+    public function canUpdate()
+    {
+        return $this->statusManager()->canUpdate($this->status);
     }
 }
