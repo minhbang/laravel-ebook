@@ -159,11 +159,11 @@
         <div class="ibox-content">
             <div class="form-group text-center">
                 <button type="submit" class="btn btn-success save" style="margin-right: 15px;">{{ trans('common.save') }}</button>
-                @if(user()->hasRole('tv.nv', true))
+                @if(user()->hasRole('tv.nv', true) && $ebook->status < \Minhbang\Ebook\Ebook::STATUS_PENDING)
                     <button type="submit" class="btn btn-primary save_pending" style="margin-right: 15px;">
                         {{ trans('ebook::common.save_pending')}}</button>
                 @endif
-                @if(user()->hasRole('tv.pt'))
+                @if(user()->hasRole('tv.pt') && $ebook->status < \Minhbang\Ebook\Ebook::STATUS_PUBLISHED)
                     <button type="submit" class="btn btn-warning save_published" style="margin-right: 15px;">
                         {{ trans('ebook::common.save_published')}}</button>
                 @endif
@@ -190,11 +190,11 @@
             var url = '{!! $url !!}';
             $(".save_pending").on("click", function (e) {
                 e.preventDefault();
-                $('#ebook-form').attr('action', url + '?s=pending').submit();
+                $('#ebook-form').attr('action', url + '?s={{Minhbang\Ebook\Ebook::STATUS_PENDING}}').submit();
             });
             $(".save_published").on("click", function (e) {
                 e.preventDefault();
-                $('#ebook-form').attr('action', url + '?s=published').submit();
+                $('#ebook-form').attr('action', url + '?s={{Minhbang\Ebook\Ebook::STATUS_PUBLISHED}}').submit();
             });
         });
     </script>

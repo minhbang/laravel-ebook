@@ -4,6 +4,7 @@
         <div class="dataTables_toolbar">
             {!! Html::linkButton('#', trans('common.search'), ['class'=>'advanced_search_collapse','type'=>'info', 'size'=>'xs', 'icon' => 'search']) !!}
             {!! Html::linkButton('#', trans('common.all'), ['class'=>'filter-clear', 'type'=>'warning', 'size'=>'xs', 'icon' => 'list']) !!}
+            {!! Html::linkButton(route($route_prefix.'backend.ebook.create'), trans('common.create'), ['type'=>'success', 'size'=>'xs', 'icon' => 'plus-sign']) !!}
         </div>
         <div class="bg-warning dataTables_advanced_search">
             <form class="form-horizontal" role="form">
@@ -29,10 +30,10 @@
             </form>
         </div>
     </div>
-    {!! $statusTabs !!}
     <div class="ibox ibox-table">
         <div class="ibox-title">
             <h5>{!! trans('ebook::common.manage_title', ['status' => $current]) !!}</h5>
+            <div class="ibox-tools"><a class="collapse-link"><i class="fa fa-chevron-up"></i></a></div>
         </div>
         <div class="ibox-content">
             {!! $table->render('_datatable') !!}

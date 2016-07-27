@@ -84,7 +84,7 @@ class Presenter extends EnumPresenter
         /** @var \Minhbang\Ebook\Ebook $model */
         $model = $this->entity;
 
-        $title = $model->allowed(user(), 'update') ? Html::linkQuickUpdate(
+        $title = $model->canUpdate() ? Html::linkQuickUpdate(
             $model->id,
             $model->title,
             [
@@ -94,7 +94,10 @@ class Presenter extends EnumPresenter
                 'placement' => 'top',
             ]
         ) : $model->title;
-        $info = "<small class='text-muted'>{$model->writer}, " . trans('ebook::common.publisher_id_th') . ": {$model->publisher}</small><br>";
+        $info = '';
+        if ($model->status !== Ebook::STATUS_UPLOADED) {
+            $info .= "<small class='text-muted'>{$model->writer}, " . trans('ebook::common.publisher_id_th') . ": {$model->publisher}</small><br>";
+        }
         $info .= "<small class='text-muted'>{$this->fileicon()} {$this->filesize()} - {$this->createdAt()}</small>";
 
         return "<div class=\"title\">{$title}</div><div class=\"info\">{$info}</div>";

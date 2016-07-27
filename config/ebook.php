@@ -10,10 +10,6 @@ return [
         'width_sm'  => 70,
         'height_sm' => 106,
     ],
-    'category'       => [
-        'title'     => 'ebook::common.ebooks',
-        'max_depth' => 5,
-    ],
     /**
      * Thư mục chứa file Tài liệu số
      * Là thư mục con của <root>/storage/data
@@ -27,18 +23,4 @@ return [
      * Khai báo middleware cho Controller
      */
     'middleware'     => 'role:sys.admin',
-    'datatable'      => \Minhbang\Ebook\Datatable::class,
-    'html'           => \Minhbang\Ebook\Html::class,
-    'access_control' => \Minhbang\Ebook\EbookAccessControl::class,
-
-    // Định nghĩa menus cho ebook
-    'menus'          => [
-        'backend.sidebar.content.ebook' => [
-            'priority' => 4,
-            'url'      => 'route:backend.ebook.index',
-            'label'    => 'trans:ebook::common.ebooks',
-            'icon'     => 'fa-book',
-            'active'   => 'backend/ebook*',
-        ],
-    ],
 ];
