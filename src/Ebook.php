@@ -3,7 +3,6 @@ namespace Minhbang\Ebook;
 
 use Carbon\Carbon;
 use Laracasts\Presenter\PresentableTrait;
-use Minhbang\Status\Traits\Statusable;
 use Minhbang\Category\Categorized;
 use Minhbang\Enum\EnumContract;
 use Minhbang\Enum\HasEnum;
@@ -12,6 +11,7 @@ use Minhbang\Kit\Traits\Model\DatetimeQuery;
 use Minhbang\Kit\Traits\Model\FeaturedImage;
 use Minhbang\Kit\Traits\Model\HasFile;
 use Minhbang\Kit\Traits\Model\SearchQuery;
+use Minhbang\Security\AccessControllable;
 use Minhbang\User\Support\UserQuery;
 use DB;
 
@@ -102,7 +102,6 @@ use DB;
 class Ebook extends Model implements EnumContract
 {
     use SearchQuery;
-    use Statusable;
     use Categorized;
     use UserQuery;
     use PresentableTrait;
@@ -110,6 +109,7 @@ class Ebook extends Model implements EnumContract
     use DatetimeQuery;
     use HasEnum;
     use HasFile;
+    use AccessControllable;
 
     protected $table = 'ebooks';
     protected $presenter = Presenter::class;
@@ -276,25 +276,5 @@ class Ebook extends Model implements EnumContract
             'size' => 'filesize',
             'dir'  => storage_path('data/' . config('ebook.data_dir')),
         ];
-    }
-    
-    /**
-     * User hiện tại có thể DELETE ebook này không?
-     *
-     * @return bool
-     */
-    public function canDelete()
-    {
-        return $this->statusManager()->canDelete($this->status);
-    }
-
-    /**
-     * User hiện tại có thể UPDATE ebook này không?
-     *
-     * @return bool
-     */
-    public function canUpdate()
-    {
-        return $this->statusManager()->canUpdate($this->status);
     }
 }

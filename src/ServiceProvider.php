@@ -6,8 +6,8 @@ use Illuminate\Routing\Router;
 use Minhbang\Kit\Extensions\BaseServiceProvider;
 use Minhbang\Enum\Enum;
 use CategoryManager;
-use Status;
 use MenuManager;
+use AccessControl;
 
 /**
  * Class ServiceProvider
@@ -44,16 +44,15 @@ class ServiceProvider extends BaseServiceProvider
 
         $this->mapWebRoutes($router, __DIR__ . '/routes.php', config('ebook.add_route'));
 
+        $class = Ebook::class;
         // pattern filters
         $router->pattern('ebook', '[0-9]+');
         // model bindings
-        $router->model('ebook', 'Minhbang\Ebook\Ebook');
-
-        Enum::registerResources([Ebook::class]);
-        Status::register(Ebook::class, config('ebook.status_manager'));
-        CategoryManager::register(Ebook::class, trans('ebook::common.ebook'), config('ebook.category_max_depth'));
-        // Add ebook menus
+        $router->model('ebook', $class);
+        Enum::registerResources([$class]);
+        CategoryManager::register($class, config('ebook.category'));
         MenuManager::addItems(config('ebook.menus'));
+        AccessControl::register($class, config('ebook.access_control'));
     }
 
     /**

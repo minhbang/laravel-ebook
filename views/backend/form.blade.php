@@ -159,11 +159,11 @@
         <div class="ibox-content">
             <div class="form-group text-center">
                 <button type="submit" class="btn btn-success save" style="margin-right: 15px;">{{ trans('common.save') }}</button>
-                @if(user()->hasRole('tv.nv', true) && $ebook->status < $ebook->statusManager()->valueStatus('pending'))
+                @if(user()->hasRole('tv.nv', true))
                     <button type="submit" class="btn btn-primary save_pending" style="margin-right: 15px;">
                         {{ trans('ebook::common.save_pending')}}</button>
                 @endif
-                @if(user()->hasRole('tv.pt') && $ebook->status < $ebook->statusManager()->valueStatus('published'))
+                @if(user()->hasRole('tv.pt'))
                     <button type="submit" class="btn btn-warning save_published" style="margin-right: 15px;">
                         {{ trans('ebook::common.save_published')}}</button>
                 @endif

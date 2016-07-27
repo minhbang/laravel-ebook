@@ -8,7 +8,6 @@ use Session;
 use Request;
 use Datatable;
 use Minhbang\Kit\Support\VnString;
-use Html;
 use Response;
 
 /**
@@ -20,13 +19,13 @@ class BackendController extends BaseController
 {
     use QuickUpdateActions;
     /**
-     * @var \Minhbang\Category\Root
+     * @var \Minhbang\Category\Type
      */
     protected $categoryManager;
     /**
-     * @var \Minhbang\Status\Managers\StatusManager
+     * @var \Minhbang\Security\AccessControl
      */
-    protected $statusManager;
+    protected $accessControl;
     /**
      * @var int
      */
@@ -36,17 +35,28 @@ class BackendController extends BaseController
      *
      * @var bool
      */
-    protected $allStatus = true;
+    public $allStatus = true;
+    /**
+     * @var \Minhbang\Ebook\Html
+     */
+    protected $html;
+    /**
+     * @var \Minhbang\Ebook\Ebook
+     */
+    protected $model;
+    /**
+     * @var \Minhbang\Ebook\Datatable
+     */
+    protected $datatable;
 
     /**
-     * @param null|string $status
+     * @param int $status
      */
     protected function switchStatus($status = null)
     {
         $key = 'backend.ebook.status';
-        $status = is_null($status) ? session($key, $this->statusManager->valueDefault()) : $status;
-        if ($this->statusManager->checkStatus($status)) {
-            $status = $this->statusManager->valueStatus($status);
+        $status = is_null($status) ? session($key, $this->accessControl->editingValue()) : $status;
+        if ($this->accessControl->has($status)) {
             $this->status = $status;
             session([$key => $status]);
         } else {
@@ -62,54 +72,44 @@ class BackendController extends BaseController
      */
     public function __construct(Ebook $ebook)
     {
-        parent::__construct();
+        $this->model = $ebook;
         $this->categoryManager = $ebook->categoryManager();
-        $this->statusManager = $ebook->statusManager();
+        $this->accessControl = $ebook->accessControl();
+        $this->datatable = $this->newClassInstance(config('ebook.datatable'), $this);
+        parent::__construct();
         $this->switchStatus();
     }
 
+    protected function initWeb()
+    {
+        parent::initWeb();
+        $this->html = $this->newClassInstance(config('ebook.html'), $this->model);
+        view()->share('html', $this->html);
+    }
+
     /**
-     *
-     * @param \Minhbang\Ebook\Ebook $ebook
      * @param int $status
      *
      * @return \Illuminate\View\View
      * @throws \Exception
      */
-    public function index(Ebook $ebook, $status = null)
+    public function index($status = null)
     {
         $this->switchStatus($status);
-        $tableOptions = [
-            'id'        => 'ebook-manage',
-            'class'     => 'table-ebooks',
-            'row_index' => true,
-        ];
-
-        $options = [
-            'aoColumnDefs' => [
-                ['sClass' => 'min-width text-right', 'aTargets' => [0]],
-                ['sClass' => 'min-width', 'aTargets' => [1]],
-                ['sClass' => 'min-width text-right', 'aTargets' => [-1, -2]],
-            ],
-        ];
-        $table = Datatable::table()->setOptions($options)->setCustomValues($tableOptions)
-            ->addColumn(
-                '',
-                trans('ebook::common.featured_image'),
-                trans('ebook::common.ebook'),
-                trans('ebook::common.security_id'),
-                trans('common.actions')
-            );
+        $this->datatable->share('backend');
         $name = trans('ebook::common.ebooks');
         $this->buildHeading(
             [trans('common.manage'), $name],
             'fa-file-pdf-o',
             ['#' => $name],
-            $ebook->present()->buttons($this->status, route($this->route_prefix . 'backend.ebook.index_status', ['status' => 'STATUS']))
+            [
+                [route($this->route_prefix . 'backend.ebook.create'), trans('common.create'), ['type' => 'success', 'icon' => 'plus-sign']],
+            ]
         );
-        $current = $this->statusManager->statusTitle($this->status);
+        $current = $this->accessControl->get('title', $this->status);
+        $statusTabs = $this->html->statusTabs($this->status, route($this->route_prefix . 'backend.ebook.index_status', ['status' => 'STATUS']));
 
-        return view('ebook::backend.index', compact('tableOptions', 'options', 'table', 'current'));
+        return view('ebook::backend.index', compact('current', 'statusTabs'));
     }
 
 
@@ -128,59 +128,7 @@ class BackendController extends BaseController
                 ->searchWhereBetween('ebooks.updated_at', 'mb_date_vn2mysql');
         }
 
-        return Datatable::query($query)
-            ->addColumn(
-                'index',
-                function (Ebook $model) {
-                    return $model->id;
-                }
-            )
-            ->addColumn(
-                'index',
-                function (Ebook $model) {
-                    return $model->id;
-                }
-            )
-            ->addColumn(
-                'image',
-                function (Ebook $model) {
-                    return $model->present()->featured_image_lightbox;
-                }
-            )
-            ->addColumn(
-                'title',
-                function (Ebook $model) {
-                    return $model->present()->title_block;
-                }
-            )
-            ->addColumn(
-                'security',
-                function (Ebook $model) {
-                    return $model->present()->securityFormated;
-                }
-            )
-            ->addColumn(
-                'actions',
-                function (Ebook $model) {
-                    $url = route($this->route_prefix . 'backend.ebook.status', ['ebook' => $model->id, 'status' => 'STATUS']);
-                    $statuses = $this->allStatus ?
-                        $model->present()->status($url) . '<br>' : $model->present()->statusActions($url);
-
-                    return $statuses . Html::tableActions(
-                        $this->route_prefix . 'backend.ebook',
-                        ['ebook' => $model->id],
-                        $model->title,
-                        trans('ebook::common.ebook'),
-                        [
-                            'renderPreview' => 'link',
-                            'renderEdit'    => $model->canUpdate() ? 'link' : 'disabled',
-                            'renderDelete'  => $model->canDelete() ? 'link' : 'disabled',
-                            'renderShow'    => 'link',
-                        ]
-                    );
-                }
-            )
-            ->searchColumns('ebooks.title')->make();
+        return $this->datatable->make('backend', $query);
     }
 
     /**
@@ -242,7 +190,7 @@ class BackendController extends BaseController
     public function show(Ebook $ebook)
     {
         $name = trans('ebook::common.ebooks');
-        $canUpdate = $ebook->canUpdate();
+        $canUpdate = $ebook->allowed(user(), 'update');
         $this->buildHeading(
             [trans('common.view_detail'), $name],
             'list',
@@ -290,7 +238,7 @@ class BackendController extends BaseController
      */
     public function edit(Ebook $ebook)
     {
-        if ($ebook->canUpdate()) {
+        if ($ebook->allowed(user(), 'update')) {
             $url = route($this->route_prefix . 'backend.ebook.update', ['ebook' => $ebook->id]);
             $method = 'put';
             $categories = $this->categoryManager->selectize();
@@ -421,6 +369,6 @@ class BackendController extends BaseController
      */
     protected function quickUpdateAllowed($model)//, $attribute, $value)
     {
-        return $model->canUpdate();
+        return $model->allowed(user(), 'update');
     }
 }

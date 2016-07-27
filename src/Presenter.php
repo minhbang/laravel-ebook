@@ -84,7 +84,7 @@ class Presenter extends EnumPresenter
         /** @var \Minhbang\Ebook\Ebook $model */
         $model = $this->entity;
 
-        $title = $model->canUpdate() ? Html::linkQuickUpdate(
+        $title = $model->allowed(user(), 'update') ? Html::linkQuickUpdate(
             $model->id,
             $model->title,
             [
