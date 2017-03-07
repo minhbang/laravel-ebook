@@ -2,16 +2,17 @@
 namespace Minhbang\Ebook;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Laracasts\Presenter\PresentableTrait;
+use Minhbang\Category\ManyCategorized;
+use Minhbang\File\Support\Fileable;
 use Minhbang\Status\Statusable;
 use Minhbang\Status\StatusContract;
-use Minhbang\Category\Categorized;
 use Minhbang\Enum\EnumContract;
 use Minhbang\Enum\HasEnum;
 use Minhbang\Kit\Extensions\Model;
 use Minhbang\Kit\Traits\Model\DatetimeQuery;
 use Minhbang\Kit\Traits\Model\FeaturedImage;
-use Minhbang\Kit\Traits\Model\HasFile;
 use Minhbang\Kit\Traits\Model\SearchQuery;
 use Minhbang\User\Support\UserQuery;
 use DB;
@@ -24,14 +25,10 @@ use Minhbang\User\User;
  * @property integer $id
  * @property string $title
  * @property string $slug
- * @property string $filename
- * @property string $filemime
- * @property integer $filesize
  * @property string $summary
  * @property string $featured_image
  * @property integer $pyear
  * @property integer $pages
- * @property integer $category_id
  * @property integer $language_id
  * @property integer $security_id
  * @property integer $writer_id
@@ -44,48 +41,18 @@ use Minhbang\User\User;
  * @property boolean $featured
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * @property-read \Minhbang\Category\Category $category
+ * @property-read mixed $url
  * @property-read \Minhbang\User\User $user
- * @property-read string $url
  * @property-read mixed $featured_image_url
  * @property-read mixed $featured_image_sm_url
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook queryDefault()
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook forSelectize($take = 50)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model except($id = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model whereAttributes($attributes)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model findText($column, $text)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook status($status)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchKeyword($keyword, $columns = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhere($column, $operator = '=', $fn = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereIn($column, $fn)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereBetween($column, $fn = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereInDependent($column, $column_dependent, $fn, $empty = [])
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook categorized($category = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withCategoryTitle()
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook notMine()
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook mine()
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withAuthor()
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook orderCreated($direction = 'desc')
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook orderUpdated($direction = 'desc')
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook period($start = null, $end = null, $field = 'created_at', $end_if_day = false, $is_month = false)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook today($field = 'created_at')
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook yesterday($same_time = false, $field = 'created_at')
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook thisWeek($field = 'created_at')
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook thisMonth($field = 'created_at')
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withEnumTitles()
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook featured()
- * @mixin \Eloquent
+ * @property-read \Illuminate\Database\Eloquent\Collection|\Minhbang\File\File[] $files
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereId($value)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereTitle($value)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSlug($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFilename($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFilemime($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFilesize($value)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSummary($value)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFeaturedImage($value)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePyear($value)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePages($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereCategoryId($value)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereLanguageId($value)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSecurityId($value)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereWriterId($value)
@@ -98,7 +65,39 @@ use Minhbang\User\User;
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFeatured($value)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereCreatedAt($value)
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook queryDefault()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook featured()
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook published()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook forSelectize($take = 50)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model except($id = null)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model whereAttributes($attributes)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model findText($column, $text)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook status($status)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchKeyword($keyword, $columns = null)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhere($column, $operator = '=', $fn = null)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereIn($column, $fn)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereBetween($column, $fn = null)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereInDependent($column, $column_dependent, $fn, $empty = [])
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook notMine()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook mine()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withAuthor()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook orderCreated($direction = 'desc')
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook orderUpdated($direction = 'desc')
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook period($start = null, $end = null, $field = 'created_at', $end_if_day = false, $is_month = false)
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook today($field = 'created_at')
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook yesterday($same_time = false, $field = 'created_at')
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook thisWeek($field = 'created_at')
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook thisMonth($field = 'created_at')
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withEnumTitles()
+ *
+ * Attributes from loadEnum()
+ * @property-read string $security
+ * @property-read string $security_params
+ * @property-read string $writer
+ * @property-read string $publisher
+ * @mixin \Eloquent
+ * @property-read \Baum\Extensions\Eloquent\Collection|\Minhbang\Category\Category[] $categories
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook categorized($category, $immediate = false)
  */
 class Ebook extends Model implements EnumContract, StatusContract
 {
@@ -122,19 +121,29 @@ class Ebook extends Model implements EnumContract, StatusContract
 
     use SearchQuery;
     use Statusable;
-    use Categorized;
     use UserQuery;
     use PresentableTrait;
     use FeaturedImage;
     use DatetimeQuery;
     use HasEnum;
-    use HasFile;
+    use Fileable;
+    use ManyCategorized;
 
     protected $table = 'ebooks';
-    protected $presenter = Presenter::class;
+    protected $presenter = EbookPresenter::class;
     protected $fillable = [
-        'title', 'slug', 'summary', 'pyear', 'pages', 'category_id', 'language_id', 'security_id',
-        'writer_id', 'publisher_id', 'pplace_id', 'series_id', 'featured',
+        'title',
+        'slug',
+        'summary',
+        'pyear',
+        'pages',
+        'language_id',
+        'security_id',
+        'writer_id',
+        'publisher_id',
+        'pplace_id',
+        'series_id',
+        'featured',
     ];
     /**
      * Các columns có thể search
@@ -168,7 +177,7 @@ class Ebook extends Model implements EnumContract, StatusContract
     {
         /** @var User $user */
         $user = user();
-        if (!$user->isSysSadmin() && !$user->hasRole('tv.*')) {
+        if ( ! $user->isSysSadmin() && ! $user->hasRole('tv.*')) {
             DB::table('read_ebook')->insert([
                 'reader_id' => $user->id,
                 'ebook_id'  => $this->id,
@@ -187,17 +196,30 @@ class Ebook extends Model implements EnumContract, StatusContract
      */
     public function loadInfo()
     {
-        return static::where('ebooks.id', $this->id)->queryDefault()->withEnumTitles()->withCategoryTitle()->first();
+        return static::where('ebooks.id', $this->id)->queryDefault()->withEnumTitles()->first();
     }
 
     /**
      * @param int $limit
      *
-     * @return \Illuminate\Database\Query\Builder|static
+     * @return Collection| static[]
      */
     public function related($limit = 9)
     {
-        return static::queryDefault()->except()->withEnumTitles()->categorized($this->category)->orderUpdated()->take($limit);
+        $categories = $this->categories;
+        $items      = [];
+        if ($categories->count()) {
+            foreach ($categories as $category) {
+                $items = array_merge(
+                    $items,
+                    static::queryDefault()->except()->withEnumTitles()
+                          ->categorized($category)->orderUpdated()->take($limit)->get()->all()
+                );
+            }
+        }
+        $items = new Collection($items);
+
+        return $items->unique('id')->take($limit);
     }
 
     /**
@@ -341,7 +363,10 @@ class Ebook extends Model implements EnumContract, StatusContract
         $map = [
             static::STATUS_UPLOADED   => [static::STATUS_PROCESSING],
             static::STATUS_PROCESSING => $isPT ? [static::STATUS_PUBLISHED] : [static::STATUS_PENDING],
-            static::STATUS_PENDING    => $isPT ? [static::STATUS_PROCESSING, static::STATUS_PUBLISHED] : [static::STATUS_PROCESSING],
+            static::STATUS_PENDING    => $isPT ? [
+                static::STATUS_PROCESSING,
+                static::STATUS_PUBLISHED,
+            ] : [static::STATUS_PROCESSING],
             static::STATUS_PUBLISHED  => $isPT ? [static::STATUS_PROCESSING] : [],
         ];
         $can = $map[$this->status];
@@ -403,20 +428,5 @@ class Ebook extends Model implements EnumContract, StatusContract
     protected function enumGuarded()
     {
         return ['security_id'];
-    }
-
-    /**
-     * Cấu hình cho trait HasFile
-     *
-     * @return array
-     */
-    protected function fileConfig()
-    {
-        return [
-            'name' => 'filename',
-            'mime' => 'filemime',
-            'size' => 'filesize',
-            'dir'  => storage_path('data/' . config('ebook.data_dir')),
-        ];
     }
 }

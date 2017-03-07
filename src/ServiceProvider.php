@@ -39,13 +39,13 @@ class ServiceProvider extends BaseServiceProvider
             'db'
         );
 
-        if (config('ebook.add_route') && !$this->app->routesAreCached()) {
+        if (config('ebook.add_route') && ! $this->app->routesAreCached()) {
             require __DIR__ . '/routes.php';
         }
         // pattern filters
         $router->pattern('ebook', '[0-9]+');
         // model bindings
-        $router->model('ebook', 'Minhbang\Ebook\Ebook');
+        $router->model('ebook', \Minhbang\Ebook\Ebook::class);
 
         Enum::registerResources([Ebook::class]);
     }

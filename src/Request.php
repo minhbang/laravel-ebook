@@ -21,7 +21,6 @@ class Request extends BaseRequest
         'security_id'  => 'required',
         'writer_id'    => 'required',
         'publisher_id' => 'required',
-        'filename'     => 'mimes:pdf|max:40960', // 40 Mb = 40*1024 Kb
     ];
 
     /**
@@ -46,8 +45,8 @@ class Request extends BaseRequest
             //update Ebook
         } else {
             //create Ebook
-            $this->rules['filename'] .= '|required';
         }
+
         return $this->rules;
     }
 

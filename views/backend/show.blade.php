@@ -16,20 +16,16 @@
                     <td><strong>{{ $ebook->slug }}</strong></td>
                 </tr>
                 <tr>
-                    <td>{{ trans('ebook::common.category_id') }}</td>
-                    <td><strong>{{ $ebook->present()->category }}</strong></td>
-                </tr>
-                <tr>
-                    <td>{{ trans('ebook::common.filename') }}</td>
-                    <td><code>{!! $ebook->present()->fileicon !!} {{ $ebook->filename }}</code></td>
-                </tr>
-                <tr>
-                    <td>{{ trans('ebook::common.filesize') }}</td>
-                    <td><strong>{!! $ebook->present()->filesize !!}</strong></td>
+                    <td>{{ trans('ebook::common.categories') }}</td>
+                    <td><strong>{!! $ebook->present()->categories !!}</strong></td>
                 </tr>
                 <tr>
                     <td>{{ trans('ebook::common.featured_image') }}</td>
                     <td>{!! $ebook->present()->featured_image_lightbox !!}</td>
+                </tr>
+                <tr>
+                    <td>{{trans('ebook::common.files')}}</td>
+                    <td>{!! $ebook->present()->files !!}</td>
                 </tr>
             </table>
         </div>

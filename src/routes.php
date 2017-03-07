@@ -7,8 +7,10 @@ Route::group(
             function () {
                 Route::get('status/{status}', ['as' => 'index_status', 'uses' => 'BackendController@index']);
                 Route::get('data', ['as' => 'data', 'uses' => 'BackendController@data']);
-                Route::get('{ebook}/preview', ['as' => 'preview', 'uses' => 'BackendController@preview']);
-                Route::post('{ebook}/quick_update', ['as' => 'quick_update', 'uses' => 'BackendController@quickUpdate']);
+                Route::post(
+                    '{ebook}/quick_update',
+                    ['as' => 'quick_update', 'uses' => 'BackendController@quickUpdate']
+                );
                 Route::post('{ebook}/status/{status}', ['as' => 'status', 'uses' => 'BackendController@status']);
             }
         );

@@ -26,21 +26,24 @@
                             <p class="help-block">{{ $errors->first("slug") }}</p>
                         @endif
                     </div>
-
-                    <div class="form-group{{ $errors->has("filename") ? ' has-error':'' }}">
-                        {!! Form::label("filename", trans('ebook::common.filename'), ['class' => "control-label"]) !!}
-                        {!! Form::fileinput("filename", ['prompt'=>$file_hint]) !!}
-                        @if($errors->has("filename"))
-                            <p class="help-block">{{ $errors->first("filename") }}</p>
-                        @endif
+                    <div class="form-group">
+                        {!! $ebook->present()->form_files !!}
                     </div>
-
+                </div>
+            </div>
+            <div class="ibox ibox-table">
+                <div class="ibox-title">
+                    <h5>{{trans('ebook::common.summary')}}</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                    </div>
+                </div>
+                <div class="ibox-content">
                     <div class="form-group{{ $errors->has("summary") ? ' has-error':'' }}">
-                        {!! Form::label("summary", trans('ebook::common.summary'), ['class' => "control-label"]) !!}
                         {!! Form::textarea("summary", null, [
                             'class' => 'form-control wysiwyg',
                             'data-editor' => 'simple',
-                            'data-height' => 500,
+                            'data-height' => 400,
                             'data-attribute' => 'summary',
                             'data-resource' => 'ebook',
                             'data-id' => $ebook->id
@@ -69,11 +72,11 @@
                                     <p class="help-block">{{ $errors->first('featured') }}</p>
                                 @endif
                             </div>
-                            <div class="form-group{{ $errors->has('category_id') ? ' has-error':'' }}">
-                                {!! Form::label('category_id', trans('category::common.category'), ['class' => 'control-label']) !!}
-                                {!! Form::select('category_id', $categories, null, ['prompt' =>'', 'class' => 'form-control selectize-tree']) !!}
-                                @if($errors->has('category_id'))
-                                    <p class="help-block">{{ $errors->first('category_id') }}</p>
+                            <div class="form-group{{ $errors->has('categories[]') ? ' has-error':'' }}">
+                                {!! Form::label('categories[]', trans('ebook::common.categories'), ['class' => 'control-label']) !!}
+                                {!! Form::select('categories[]', $all_categories, $categories, ['multiple', 'prompt' =>'', 'class' => 'form-control selectize-tree']) !!}
+                                @if($errors->has('categories[]'))
+                                    <p class="help-block">{{ $errors->first('categories[]') }}</p>
                                 @endif
                             </div>
                             <div class="row">
@@ -158,7 +161,8 @@
     <div class="ibox">
         <div class="ibox-content">
             <div class="form-group text-center">
-                <button type="submit" class="btn btn-success save" style="margin-right: 15px;">{{ trans('common.save') }}</button>
+                <button type="submit" class="btn btn-success save"
+                        style="margin-right: 15px;">{{ trans('common.save') }}</button>
                 @if(user()->hasRole('tv.nv', true) && $ebook->status < \Minhbang\Ebook\Ebook::STATUS_PENDING)
                     <button type="submit" class="btn btn-primary save_pending" style="margin-right: 15px;">
                         {{ trans('ebook::common.save_pending')}}</button>

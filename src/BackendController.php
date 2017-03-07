@@ -9,6 +9,7 @@ use Request;
 use Datatable;
 use Minhbang\Kit\Support\VnString;
 use Html;
+use CategoryManager;
 
 /**
  * Class Controller
@@ -42,7 +43,7 @@ class BackendController extends BaseController
      */
     protected function switchStatus($status = null)
     {
-        $key = 'backend.ebook.status';
+        $key    = 'backend.ebook.status';
         $status = is_null($status) ? session($key, key($this->statuses)) : $status;
         if (isset($this->statuses[(int)$status])) {
             $this->status = $status;
@@ -61,8 +62,8 @@ class BackendController extends BaseController
     public function __construct(Ebook $ebook)
     {
         parent::__construct();
-        $this->categoryManager = app('category-manager')->root('ebook');
-        $this->statuses = $ebook->statuses();
+        $this->categoryManager = CategoryManager::root('ebook');
+        $this->statuses        = $ebook->statuses();
         $this->switchStatus();
     }
 
@@ -78,7 +79,7 @@ class BackendController extends BaseController
     {
         $this->switchStatus((int)$status);
         $isReaderUploaded = $this->status === Ebook::STATUS_UPLOADED;
-        $tableOptions = [
+        $tableOptions     = [
             'id'        => 'ebook-manage',
             'class'     => 'table-ebooks',
             'row_index' => true,
@@ -95,10 +96,11 @@ class BackendController extends BaseController
                 'aoColumnDefs' => [
                     ['sClass' => 'min-width text-right', 'aTargets' => [0]],
                     ['sClass' => 'min-width', 'aTargets' => [1]],
-                    ['sClass' => 'min-width text-right', 'aTargets' => [-1, -2]],
+                    ['sClass' => 'min-width', 'aTargets' => [-3]],
+                    ['sClass' => 'min-width text-right', 'aTargets' => [-1, -2, -3]],
                 ],
             ];
-        $table = Datatable::table()->setOptions($options)->setCustomValues($tableOptions);
+        $table   = Datatable::table()->setOptions($options)->setCustomValues($tableOptions);
         if ($isReaderUploaded) {
             $table->addColumn(
                 '',
@@ -110,6 +112,7 @@ class BackendController extends BaseController
                 '',
                 trans('ebook::common.featured_image'),
                 trans('ebook::common.ebook'),
+                trans('ebook::common.files'),
                 trans('ebook::common.security_id'),
                 trans('common.actions')
             );
@@ -119,9 +122,11 @@ class BackendController extends BaseController
             [trans('common.manage'), $name],
             'fa-file-pdf-o',
             ['#' => $name],
-            $ebook->present()->buttons($this->status, route($this->route_prefix . 'backend.ebook.index_status', ['status' => 'STATUS']))
+            $ebook->present()->buttons($this->status,
+                route($this->route_prefix . 'backend.ebook.index_status', ['status' => 'STATUS']))
         );
         $current = (new Ebook())->statusTitles($this->status);
+
         return view('ebook::backend.index', compact('tableOptions', 'options', 'table', 'current'));
     }
 
@@ -136,7 +141,7 @@ class BackendController extends BaseController
         $isReaderUploaded = $this->status === Ebook::STATUS_UPLOADED;
         /** @var \Minhbang\Ebook\Ebook $query */
         $query = Ebook::queryDefault()->status($this->status)->orderUpdated();
-        if (!$isReaderUploaded) {
+        if ( ! $isReaderUploaded) {
             $query->withEnumTitles();
         }
         if (Request::has('search_form')) {
@@ -145,12 +150,12 @@ class BackendController extends BaseController
                 ->searchWhereBetween('ebooks.updated_at', 'mb_date_vn2mysql');
         }
         $datatable = Datatable::query($query)
-            ->addColumn(
-                'index',
-                function (Ebook $model) {
-                    return $model->id;
-                }
-            );
+                              ->addColumn(
+                                  'index',
+                                  function (Ebook $model) {
+                                      return $model->id;
+                                  }
+                              );
         if ($isReaderUploaded) {
             $datatable = $datatable
                 ->addColumn(
@@ -180,7 +185,7 @@ class BackendController extends BaseController
                             $model->title,
                             trans('ebook::common.ebook'),
                             [
-                                'renderPreview' => 'link',
+                                'renderPreview' => false,
                                 'renderEdit'    => false,
                                 'renderDelete'  => 'link',
                                 'renderShow'    => 'link',
@@ -209,6 +214,12 @@ class BackendController extends BaseController
                     }
                 )
                 ->addColumn(
+                    'files',
+                    function (Ebook $model) {
+                        return $model->present()->files;
+                    }
+                )
+                ->addColumn(
                     'security',
                     function (Ebook $model) {
                         return $model->present()->securityFormated;
@@ -217,7 +228,10 @@ class BackendController extends BaseController
                 ->addColumn(
                     'actions',
                     function (Ebook $model) {
-                        $url = route($this->route_prefix . 'backend.ebook.status', ['ebook' => $model->id, 'status' => 'STATUS']);
+                        $url      = route($this->route_prefix . 'backend.ebook.status', [
+                            'ebook'  => $model->id,
+                            'status' => 'STATUS',
+                        ]);
                         $statuses = $this->allStatus ?
                             $model->present()->status($url) . '<br>' : $model->present()->statusActions($url);
 
@@ -227,7 +241,7 @@ class BackendController extends BaseController
                             $model->title,
                             trans('ebook::common.ebook'),
                             [
-                                'renderPreview' => 'link',
+                                'renderPreview' => false,
                                 'renderEdit'    => $model->canUpdate() ? 'link' : 'disabled',
                                 'renderDelete'  => $model->canDelete() ? 'link' : 'disabled',
                                 'renderShow'    => 'link',
@@ -247,9 +261,10 @@ class BackendController extends BaseController
      */
     public function create(Ebook $ebook)
     {
-        $url = route($this->route_prefix . 'backend.ebook.store');
-        $method = 'post';
-        $categories = $this->categoryManager->selectize();
+        $url            = route($this->route_prefix . 'backend.ebook.store');
+        $method         = 'post';
+        $all_categories = $this->categoryManager->selectize();
+        $categories = [];
         $this->buildHeading(
             [trans('common.create'), trans('ebook::common.ebooks')],
             'plus-sign',
@@ -262,7 +277,7 @@ class BackendController extends BaseController
 
         return view(
             'ebook::backend.form',
-            compact('ebook', 'url', 'method', 'categories', 'file_hint') + $ebook->loadEnums()
+            compact('ebook', 'url', 'method', 'categories', 'all_categories', 'file_hint') + $ebook->loadEnums()
         );
     }
 
@@ -276,13 +291,12 @@ class BackendController extends BaseController
         $ebook = new Ebook();
         $ebook->fill($request->all());
         $ebook->fillFeaturedImage($request);
-        $ebook->fileFill($request);
         $ebook->user_id = user('id');
-        $ebook->status = Ebook::STATUS_PROCESSING;
+        $ebook->status  = Ebook::STATUS_PROCESSING;
+        $ebook->fillCategories($request->get('categories'));
         if (($status = $request->get('s')) && $ebook->statusCanUpdate($status)) {
             $ebook->status = $status;
         }
-
         $ebook->save();
         Session::flash(
             'message',
@@ -302,8 +316,8 @@ class BackendController extends BaseController
      */
     public function show(Ebook $ebook)
     {
-        $name = trans('ebook::common.ebooks');
-        $canUpdate = $ebook->canUpdate();
+        $name             = trans('ebook::common.ebooks');
+        $canUpdate        = $ebook->canUpdate();
         $isReaderUploaded = $ebook->status === Ebook::STATUS_UPLOADED;
         $this->buildHeading(
             [trans('common.view_detail'), $name],
@@ -318,12 +332,12 @@ class BackendController extends BaseController
                 [
                     $canUpdate ? route($this->route_prefix . 'backend.ebook.edit', ['ebook' => $ebook->id]) : '#',
                     $isReaderUploaded ? trans('ilib::common.edit') : trans('common.edit'),
-                    ['icon' => 'edit', 'size' => 'sm', 'type' => 'primary', 'class' => $canUpdate ? null : 'disabled'],
-                ],
-                [
-                    route($this->route_prefix . 'backend.ebook.preview', ['ebook' => $ebook->id]),
-                    trans('common.preview'),
-                    ['icon' => 'eye-open', 'size' => 'sm', 'type' => 'info', 'target' => '_blank'],
+                    [
+                        'icon'  => 'edit',
+                        'size'  => 'sm',
+                        'type'  => 'primary',
+                        'class' => $canUpdate ? null : 'disabled',
+                    ],
                 ],
             ]
         );
@@ -337,19 +351,6 @@ class BackendController extends BaseController
     }
 
     /**
-     * @param Ebook $ebook
-     */
-    public function preview(Ebook $ebook)
-    {
-        header("Content-type: {$ebook->filemime}");
-        header('Content-Disposition: inline');
-        header('Content-Transfer-Encoding: binary');
-        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-        header('Expires: 0');
-        readfile($ebook->filePath());
-    }
-
-    /**
      * @param \Minhbang\Ebook\Ebook $ebook
      *
      * @return \Illuminate\View\View
@@ -357,10 +358,11 @@ class BackendController extends BaseController
     public function edit(Ebook $ebook)
     {
         if ($ebook->canUpdate()) {
-            $url = route($this->route_prefix . 'backend.ebook.update', ['ebook' => $ebook->id]);
-            $method = 'put';
-            $categories = $this->categoryManager->selectize();
-            $name = trans('ebook::common.ebooks');
+            $url            = route($this->route_prefix . 'backend.ebook.update', ['ebook' => $ebook->id]);
+            $method         = 'put';
+            $all_categories = $this->categoryManager->selectize();
+            $categories     = $ebook->categories()->pluck('id')->all();
+            $name           = trans('ebook::common.ebooks');
             $this->buildHeading(
                 [trans('common.update'), $name],
                 'edit',
@@ -371,7 +373,8 @@ class BackendController extends BaseController
 
             return view(
                 'ebook::backend.form',
-                compact('ebook', 'categories', 'url', 'method', 'categories', 'file_hint') + $ebook->loadEnums()
+                compact('ebook', 'categories', 'all_categories', 'url', 'method', 'categories', 'file_hint') +
+                $ebook->loadEnums()
             );
         } else {
             return view('message', [
@@ -394,7 +397,7 @@ class BackendController extends BaseController
             $isReaderUploaded = $ebook->status === Ebook::STATUS_UPLOADED;
             $ebook->fill($request->all() + ['featured' => 0]);
             $ebook->fillFeaturedImage($request);
-            $ebook->fileFill($request);
+            $ebook->fillCategories($request->get('categories'));
             if ($isReaderUploaded) {
                 $ebook->user_id = user('id');
             }
