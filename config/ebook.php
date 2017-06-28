@@ -1,6 +1,7 @@
 <?php
 return [
-    // Hình bài tài liệu, lưu trong thư mục con của <upload_path>
+    'max_file_size'  => 80 * 1024, // 80*1024 Kb
+    // Hình bài tài liệu, lưu trong thư mục con của <app.paths.upload>
     'featured_image' => [
         'dir'       => 'images/ebooks',
         'width'     => 280,
@@ -14,22 +15,12 @@ return [
         'title'     => 'ebook::common.ebooks',
         'max_depth' => 5,
     ],
-    /**
-     * Thư mục chứa file Tài liệu số
-     * Là thư mục con của <root>/storage/data
-     */
-    'data_dir'       => 'ebooks',
-    /**
-     * Tự động add các route
-     */
-    'add_route'      => true,
+
+    'status_manager' => \Minhbang\Status\Managers\Simple::class,
     /**
      * Khai báo middleware cho Controller
      */
-    'middleware'     => 'role:sys.admin',
-    'datatable'      => \Minhbang\Ebook\Datatable::class,
-    'html'           => \Minhbang\Ebook\Html::class,
-    'access_control' => \Minhbang\Ebook\EbookAccessControl::class,
+    'middleware'     => [ 'web', 'role:sys.admin' ],
 
     // Định nghĩa menus cho ebook
     'menus'          => [

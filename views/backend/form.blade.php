@@ -26,15 +26,6 @@
                             <p class="help-block">{{ $errors->first("slug") }}</p>
                         @endif
                     </div>
-
-                    <div class="form-group{{ $errors->has("filename") ? ' has-error':'' }}">
-                        {!! Form::label("filename", trans('ebook::common.filename'), ['class' => "control-label"]) !!}
-                        {!! Form::fileinput("filename", ['prompt'=>$file_hint]) !!}
-                        @if($errors->has("filename"))
-                            <p class="help-block">{{ $errors->first("filename") }}</p>
-                        @endif
-                    </div>
-
                     <div class="form-group{{ $errors->has("summary") ? ' has-error':'' }}">
                         {!! Form::label("summary", trans('ebook::common.summary'), ['class' => "control-label"]) !!}
                         {!! Form::textarea("summary", null, [
@@ -45,9 +36,7 @@
                             'data-resource' => 'ebook',
                             'data-id' => $ebook->id
                         ]) !!}
-                        @if($errors->has("summary"))
-                            <p class="help-block">{{ $errors->first("summary") }}</p>
-                        @endif
+
                     </div>
                 </div>
             </div>
@@ -61,14 +50,28 @@
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-lg-12 col-md-7">
-                            <div class="form-group{{ $errors->has('featured') ? ' has-error':'' }}">
-                                {!! Form::label('featured',  trans('ebook::common.featured_ebook'), ['class'
-                                => 'control-label']) !!}<br>
-                                {!! Form::checkbox('featured', 1, null,['class'=>'switch', 'data-on-text'=>trans('common.yes'), 'data-off-text'=>trans('common.no')]) !!}
-                                @if($errors->has('featured'))
-                                    <p class="help-block">{{ $errors->first('featured') }}</p>
-                                @endif
+                            <div class="row">
+                                <div class="col-lg-12 col-xs-6">
+                                    <div class="form-group{{ $errors->has('featured') ? ' has-error':'' }}">
+                                        {!! Form::label('featured',  trans('ebook::common.featured_ebook'), ['class'=> 'control-label']) !!}
+                                        <br>
+                                        {!! Form::checkbox('featured', 1, null,['class'=>'switch', 'data-on-text'=>trans('common.yes'), 'data-off-text'=>trans('common.no')]) !!}
+                                        @if($errors->has('featured'))
+                                            <p class="help-block">{{ $errors->first('featured') }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="col-lg-12 col-xs-6">
+                                    <div class="form-group{{ $errors->has('status') ? ' has-error':'' }}">
+                                        {!! Form::label('status',  trans('ebook::common.status'), ['class'=> 'control-label']) !!}
+                                        {!! Form::select('status', $selectize_statuses, null, ['id' => 'selectize-status', 'class' => 'form-control']) !!}
+                                        @if($errors->has('status'))
+                                            <p class="help-block">{{ $errors->first('status') }}</p>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
+
                             <div class="form-group{{ $errors->has('category_id') ? ' has-error':'' }}">
                                 {!! Form::label('category_id', trans('category::common.category'), ['class' => 'control-label']) !!}
                                 {!! Form::select('category_id', $categories, null, ['prompt' =>'', 'class' => 'form-control selectize-tree']) !!}
@@ -137,8 +140,7 @@
                         </div>
                         <div class="col-lg-12 col-md-5">
                             <div class="form-group form-image{{ $errors->has('image') ? ' has-error':'' }}">
-                                {!! Form::label('image', trans('ebook::common.featured_image'), ['class' =>
-                                'control-label']) !!}
+                                {!! Form::label('image', trans('ebook::common.featured_image'), ['class' =>'control-label']) !!}
                                 {!! Form::selectImage('image', ['thumbnail' => [
                                     'url' => $ebook->featured_image_url,
                                     'width' => $ebook->config['featured_image']['width'],
@@ -154,48 +156,113 @@
             </div>
         </div>
     </div>
+    {!! Form::hidden('selectedFiles') !!}
+    {!! Form::close() !!}
 
+    @include('file::backend._upload_form', ['tmp' => 1])
+    <div class="ibox ibox-table">
+        <div class="ibox-title">
+            <h5>{!! trans('ebook::common.files') !!}</h5>
+            <div class="buttons">
+                {!! Html::linkButton('#', trans('common.add'), ['id'=>'add-file','type'=>'success', 'size'=>'xs', 'icon' => 'plus-sign']) !!}
+            </div>
+        </div>
+        <div class="ibox-content">
+            @if($errors->has('files'))
+                <div class="text-danger text-center space-15">{{ $errors->first('files') }}</div>
+            @endif
+            <table id="files" class="table table-striped table-hover table-bordered table-files">
+                <tbody>
+                @foreach($files as $i => $file)
+                    <tr data-file_id="{{$file['id']}}">
+                        <td class="min-width text-right">{{$i + 1}}</td>
+                        <td>{!! $file['title'] !!}</td>
+                        <td class="min-width text-center"><a href="#" class="btn text-danger remove-file"><i class="fa fa-remove"></i></a></td>
+                    </tr>
+                @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
     <div class="ibox">
         <div class="ibox-content">
             <div class="form-group text-center">
-                <button type="submit" class="btn btn-success save" style="margin-right: 15px;">{{ trans('common.save') }}</button>
-                @if(user()->hasRole('tv.nv', true))
-                    <button type="submit" class="btn btn-primary save_pending" style="margin-right: 15px;">
-                        {{ trans('ebook::common.save_pending')}}</button>
-                @endif
-                @if(user()->hasRole('tv.pt'))
-                    <button type="submit" class="btn btn-warning save_published" style="margin-right: 15px;">
-                        {{ trans('ebook::common.save_published')}}</button>
-                @endif
-                <a href="{{ route('backend.ebook.index') }}" class="btn btn-white">{{ trans('common.cancel') }}</a>
+                <button type="submit" class="btn btn-success save"
+                        style="margin-right: 15px;">{{ trans('common.save') }}</button>
+                <a href="{{ route($route_prefix.'backend.ebook.index') }}" class="btn btn-white">{{ trans('common.cancel') }}</a>
             </div>
         </div>
     </div>
-    {!! Form::close() !!}
-@stop
+@endsection
 
-@section('script')
-    <script type="text/javascript">
-        $(document).ready(function () {
-            $('.wysiwyg').mbEditor({
-                //upload image
-                imageUploadURL: '{!! route('image.store') !!}',
-                imageMaxSize: {{setting('system.max_image_size') * 1024 * 1024 }}, //bytes
-                // load image
-                imageManagerLoadURL: '{!! route('image.data') !!}',
-                // custom options
-                imageDeleteURL: '{!! route('image.delete') !!}'
-            });
-
-            var url = '{!! $url !!}';
-            $(".save_pending").on("click", function (e) {
-                e.preventDefault();
-                $('#ebook-form').attr('action', url + '?s=pending').submit();
-            });
-            $(".save_published").on("click", function (e) {
-                e.preventDefault();
-                $('#ebook-form').attr('action', url + '?s=published').submit();
-            });
+@push('scripts')
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#selectize-status').selectize_status();
+        $('.wysiwyg').mbEditor({
+            //upload image
+            imageUploadURL: '{!! route('image.store') !!}',
+            imageMaxSize: {{setting('system.max_image_size') * 1024 * 1024 }}, //bytes
+            // load image
+            imageManagerLoadURL: '{!! route('image.data') !!}',
+            // custom options
+            imageDeleteURL: '{!! route('image.delete') !!}'
         });
-    </script>
-@stop
+        var ebook_form = $('#ebook-form');
+        $("button.save").click(function (e) {
+            e.preventDefault();
+            $('input[name=selectedFiles]', ebook_form).val(selectedFiles());
+            ebook_form.submit();
+        });
+
+        var filesTable = $('#files tbody'),
+            fileTpl = '<tr>' +
+                '<td class="min-width text-right"></td>' +
+                '<td></td>' +
+                '<td class="min-width text-center"><a href="#" class="btn text-danger remove-file"><i class="fa fa-remove"></i></a></td>' +
+                '</tr>'
+        ;
+
+        $(filesTable).on("click", "a.remove-file", function (e) {
+            e.preventDefault();
+            $(this).closest('tr').remove();
+        });
+
+        function selectedFiles() {
+            var result = '';
+            $('tr', filesTable).each(function (index, tr) {
+                result += (result.length ? ',' : '') + $(tr).data('file_id');
+            });
+            return result;
+        }
+
+        function addFile(file) {
+            var newFile = $(fileTpl);
+            newFile.data('file_id', file.id);
+            $('td:nth-child(2)', newFile).html(file.title);
+            filesTable.append(newFile);
+            updateFilesTable();
+        }
+
+        function updateFilesTable() {
+            $('tr', filesTable).each(function (index, tr) {
+                $('td:first', tr).html(index + 1);
+            });
+        }
+
+        $('#form-file').ajaxFileUpload({
+            url_store: '{{route('backend.file.store')}}',
+            add_new_button: '#add-file',
+            trans: {
+                add_new: "{{trans('file::common.add_new')}}",
+                replace: "{{trans('file::common.replace')}}",
+                ajax_upload: "{{trans('file::error.ajax_upload')}}",
+                unable_upload: "{{trans('file::error.unable_upload')}}"
+            },
+            success: function (file) {
+                addFile(file);
+            }
+        });
+    });
+</script>
+@endpush

@@ -1,143 +1,167 @@
-<?php
-namespace Minhbang\Ebook;
+<?php namespace Minhbang\Ebook;
 
 use Carbon\Carbon;
 use Laracasts\Presenter\PresentableTrait;
 use Minhbang\Category\Categorized;
-use Minhbang\Enum\EnumContract;
-use Minhbang\Enum\HasEnum;
+use Minhbang\Enum\UseEnum;
 use Minhbang\Kit\Extensions\Model;
 use Minhbang\Kit\Traits\Model\DatetimeQuery;
 use Minhbang\Kit\Traits\Model\FeaturedImage;
-use Minhbang\Kit\Traits\Model\HasFile;
 use Minhbang\Kit\Traits\Model\SearchQuery;
-use Minhbang\Security\AccessControllable;
-use Minhbang\User\Support\UserQuery;
+use Minhbang\Status\Traits\Statusable;
+use Minhbang\User\Support\HasOwner;
+use Minhbang\File\Support\Fileable;
 use DB;
 
 /**
  * Class Ebook
  *
  * @package Minhbang\Ebook
- * @property integer $id
+ * @mixin \Eloquent
+ * @property-read \Illuminate\Database\Eloquent\Collection|\Minhbang\File\File[] $files
+ * @property-read string $status_title
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook published()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook status( $status )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withEnumTitles()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook ready( $action, $by = null )
+ * Enums ---
+ * @property-read string $language_title
+ * @property-read string $security_title
+ * @property-read string $writer_title
+ * @property-read string $publisher_title
+ * @property-read string $pplace_title
+ * ---
+ * @property-read string $language_params
+ * @property-read string $security_params
+ * @property-read string $writer_params
+ * @property-read string $publisher_params
+ * @property-read string $pplace_params
+ * ------------------------------------------------------------------------------------------------------------
+ * @property int $id
  * @property string $title
  * @property string $slug
- * @property string $filename
- * @property string $filemime
- * @property integer $filesize
  * @property string $summary
  * @property string $featured_image
- * @property integer $pyear
- * @property integer $pages
- * @property integer $category_id
- * @property integer $language_id
- * @property integer $security_id
- * @property integer $writer_id
- * @property integer $publisher_id
- * @property integer $pplace_id
- * @property integer $series_id
- * @property integer $user_id
- * @property integer $status
- * @property integer $hit
- * @property boolean $featured
+ * @property int $pyear
+ * @property int $pages
+ * @property int $category_id
+ * @property int $language_id
+ * @property int $security_id
+ * @property int $writer_id
+ * @property int $publisher_id
+ * @property int $pplace_id
+ * @property int $series_id
+ * @property int $user_id
+ * @property string $status
+ * @property int $hit
+ * @property bool $featured
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * @property-read mixed $url
- * @property-read mixed $status_title
  * @property-read \Minhbang\Category\Category $category
+ * @property-read string $featured_image_sm_url
+ * @property-read string $featured_image_url
+ * @property-read string $url
  * @property-read \Minhbang\User\User $user
- * @property-read mixed $featured_image_url
- * @property-read mixed $featured_image_sm_url
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereId($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereTitle($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSlug($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFilename($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFilemime($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFilesize($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSummary($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFeaturedImage($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePyear($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePages($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereCategoryId($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereLanguageId($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSecurityId($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereWriterId($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePublisherId($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePplaceId($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSeriesId($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereUserId($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereStatus($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereHit($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFeatured($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereCreatedAt($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereUpdatedAt($value)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook queryDefault()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook categorized( $category = null )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model except( $ids )
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook featured()
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook forSelectize($take = 50)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model except($id = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model whereAttributes($attributes)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model findText($column, $text)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchKeyword($keyword, $columns = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhere($column, $operator = '=', $fn = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereIn($column, $fn)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereBetween($column, $fn = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereInDependent($column, $column_dependent, $fn, $empty = array())
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook status($status)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook published()
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook categorized($category = null)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withCategoryTitle()
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook notMine()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model findText( $column, $text )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook forSelectize( $take = 50 )
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook mine()
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withAuthor()
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook orderCreated($direction = 'desc')
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook orderUpdated($direction = 'desc')
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook period($start = null, $end = null, $field = 'created_at', $end_if_day = false, $is_month = false)
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook today($field = 'created_at')
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook yesterday($same_time = false, $field = 'created_at')
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook thisWeek($field = 'created_at')
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook thisMonth($field = 'created_at')
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withEnumTitles()
- * @mixin \Eloquent
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook notMine()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook orderCreated( $direction = 'desc' )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook orderUpdated( $direction = 'desc' )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook period( $start = null, $end = null, $field = 'created_at', $end_if_day = false, $is_month = false )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook queryDefault()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchKeyword( $keyword, $columns = null )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhere( $column, $operator = '=', $fn = null )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereBetween( $column, $fn = null )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereIn( $column, $fn )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook searchWhereInDependent( $column, $column_dependent, $fn, $empty = [] )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook thisMonth( $field = 'created_at' )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook thisWeek( $field = 'created_at' )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook today( $field = 'created_at' )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model whereAttributes( $attributes )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereCategoryId( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereCreatedAt( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFeatured( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereFeaturedImage( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereHit( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereId( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereLanguageId( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePages( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePplaceId( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePublisherId( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook wherePyear( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSecurityId( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSeriesId( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSlug( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereStatus( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereSummary( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereTitle( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereUpdatedAt( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereUserId( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook whereWriterId( $value )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withAuthor( $attribute = 'username' )
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook withCategoryTitle()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook yesterday( $same_time = false, $field = 'created_at' )
  */
-class Ebook extends Model implements EnumContract
-{
+class Ebook extends Model {
     use SearchQuery;
     use Categorized;
-    use UserQuery;
+    use HasOwner;
     use PresentableTrait;
     use FeaturedImage;
     use DatetimeQuery;
-    use HasEnum;
-    use HasFile;
-    use AccessControllable;
+    use UseEnum;
+    use Fileable;
+    use Statusable;
 
     protected $table = 'ebooks';
     protected $presenter = Presenter::class;
     protected $fillable = [
-        'title', 'slug', 'summary', 'pyear', 'pages', 'category_id', 'language_id', 'security_id',
-        'writer_id', 'publisher_id', 'pplace_id', 'series_id', 'featured',
+        'title',
+        'slug',
+        'summary',
+        'pyear',
+        'pages',
+        'category_id',
+        'language_id',
+        'security_id',
+        'writer_id',
+        'publisher_id',
+        'pplace_id',
+        'series_id',
+        'featured',
+        'status',
     ];
     /**
      * Các columns có thể search
-     * Khi search các enums, CHÚ Ý alias của table, vn
+     * Khi search các enums, CHÚ Ý alias của table, vd
      * language_id ===> languages.title
      * security_id ===> securities.title
      *
      * @var array
      */
-    protected $searchable = ['title'];
-    
+    protected $searchable = [ 'title' ];
+
+    /**
+     * Các thuộc tính enums được bảo vệ, chỉ chọn, không cho phép tạo mới
+     *
+     * @var array
+     */
+    protected $enumGuarded = [ 'security_id' ];
+
     /**
      * Ebook constructor.
      *
      * @param array $attributes
      */
-    public function __construct(array $attributes = [])
-    {
-        parent::__construct($attributes);
-        $this->config([
-            'featured_image' => config('ebook.featured_image'),
-        ]);
+    public function __construct( array $attributes = [] ) {
+        parent::__construct( $attributes );
+        $this->config( [
+            'featured_image' => config( 'ebook.featured_image' ),
+        ] );
     }
 
     /**
@@ -145,16 +169,13 @@ class Ebook extends Model implements EnumContract
      *
      * @return bool
      */
-    public function updateRead()
-    {
-        /** @var \Minhbang\User\User $user */
-        $user = user();
-        if (!$user->isSysSadmin() && !$user->hasRole('tv.*')) {
-            DB::table('read_ebook')->insert([
-                'reader_id' => $user->id,
+    public function updateRead() {
+        if ( ! authority()->user()->isAdmin() && ! authority()->user()->hasRole( 'thu_vien.*' ) ) {
+            DB::table( 'read_ebook' )->insert( [
+                'reader_id' => user( 'id' ),
                 'ebook_id'  => $this->id,
                 'read_at'   => Carbon::now(),
-            ]);
+            ] );
         }
 
         $this->timestamps = false;
@@ -166,20 +187,20 @@ class Ebook extends Model implements EnumContract
     /**
      * @return static
      */
-    public function loadInfo()
-    {
-        return static::where('ebooks.id', $this->id)->queryDefault()->withEnumTitles()->withCategoryTitle()->first();
+    public function loadInfo() {
+        return static::where( 'ebooks.id', $this->id )->queryDefault()->withEnumTitles()->withCategoryTitle()->first();
     }
 
     /**
+     * Danh sách ebook có liên quan
+     *
      * @param int $limit
      *
      * @return \Illuminate\Database\Query\Builder|static
      */
-    public function related($limit = 9)
-    {
+    public function related( $limit = 9 ) {
         return static::queryDefault()->except()->withEnumTitles()
-            ->categorized($this->category)->orderUpdated()->take($limit);
+                     ->categorized( $this->category )->orderUpdated()->take( $limit );
     }
 
     /**
@@ -187,9 +208,8 @@ class Ebook extends Model implements EnumContract
      *
      * @return \Illuminate\Database\Query\Builder|static
      */
-    public function scopeQueryDefault($query)
-    {
-        return $query->select("{$this->table}.*");
+    public function scopeQueryDefault( $query ) {
+        return $query->select( "{$this->table}.*" );
     }
 
     /**
@@ -197,9 +217,8 @@ class Ebook extends Model implements EnumContract
      *
      * @return \Illuminate\Database\Query\Builder|static
      */
-    public function scopeFeatured($query)
-    {
-        return $query->where("{$this->table}.featured", 1);
+    public function scopeFeatured( $query ) {
+        return $query->where( "{$this->table}.featured", 1 );
     }
 
     /**
@@ -210,71 +229,16 @@ class Ebook extends Model implements EnumContract
      *
      * @return \Illuminate\Database\Query\Builder|static
      */
-    public function scopeForSelectize($query, $take = 50)
-    {
-        return $query->select(['id', 'title'])->take($take);
+    public function scopeForSelectize( $query, $take = 50 ) {
+        return $query->select( [ 'id', 'title' ] )->take( $take );
     }
 
     /**
-     * @return string
-     */
-    public function getUrlAttribute()
-    {
-        return $this->id ? route('ilib.ebook.detail', ['ebook' => $this->id]) : null;
-    }
-
-    /**
-     * @return string
-     */
-    public function enumGroup()
-    {
-        return 'ebook';
-    }
-
-    /**
-     * @return string
-     */
-    public function enumGroupTitle()
-    {
-        return trans('ebook::common.ebook');
-    }
-
-    /**
-     * Các attributes có giá trị là các Enum
+     * getter $ebook->url
      *
      * @return string
      */
-    protected function enumAttributes()
-    {
-        return [
-            'language_id'  => trans('ebook::common.language_id'),
-            'security_id'  => trans('ebook::common.security_id'),
-            'writer_id'    => trans('ebook::common.writer_id'),
-            'publisher_id' => trans('ebook::common.publisher_id'),
-            'pplace_id'    => trans('ebook::common.pplace_id'),
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    protected function enumGuarded()
-    {
-        return ['security_id'];
-    }
-
-    /**
-     * Cấu hình cho trait HasFile
-     *
-     * @return array
-     */
-    protected function fileConfig()
-    {
-        return [
-            'name' => 'filename',
-            'mime' => 'filemime',
-            'size' => 'filesize',
-            'dir'  => storage_path('data/' . config('ebook.data_dir')),
-        ];
+    public function getUrlAttribute() {
+        return $this->id ? route( 'ilib.ebook.detail', [ 'ebook' => $this->id ] ) : null;
     }
 }

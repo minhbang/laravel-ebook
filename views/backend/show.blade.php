@@ -20,16 +20,12 @@
                     <td><strong>{{ $ebook->present()->category }}</strong></td>
                 </tr>
                 <tr>
-                    <td>{{ trans('ebook::common.filename') }}</td>
-                    <td><code>{!! $ebook->present()->fileicon !!} {{ $ebook->filename }}</code></td>
-                </tr>
-                <tr>
-                    <td>{{ trans('ebook::common.filesize') }}</td>
-                    <td><strong>{!! $ebook->present()->filesize !!}</strong></td>
-                </tr>
-                <tr>
                     <td>{{ trans('ebook::common.featured_image') }}</td>
                     <td>{!! $ebook->present()->featured_image_lightbox !!}</td>
+                </tr>
+                <tr>
+                    <td>{{ trans('ebook::common.files') }}</td>
+                    <td>{!! $ebook->present()->files($route_prefix. 'backend.ebook.preview') !!}</td>
                 </tr>
             </table>
         </div>
@@ -37,7 +33,7 @@
             <table class="table table-hover table-striped table-bordered table-detail">
                 <tr>
                     <td>{{ trans('ebook::common.status') }}</td>
-                    <td>{!! $ebook->present()->statusFormatted !!}</td>
+                    <td>{!! $ebook->present()->status !!}</td>
                 </tr>
                 <tr>
                     <td>{{ trans('ebook::common.featured') }}</td>
@@ -45,15 +41,15 @@
                 </tr>
                 <tr>
                     <td>{{ trans('ebook::common.security_id') }}</td>
-                    <td>{!! $ebook->present()->securityFormated !!}</td>
+                    <td>{!! $ebook->present()->security !!}</td>
                 </tr>
                 <tr>
                     <td>{{ trans('ebook::common.language_id') }}</td>
-                    <td><strong>{{ $ebook->present()->language }}</strong></td>
+                    <td><strong>{{ $ebook->language_title }}</strong></td>
                 </tr>
                 <tr>
                     <td>{{ trans('ebook::common.writer_id') }}</td>
-                    <td><strong>{{ $ebook->present()->writer }}</strong></td>
+                    <td><strong>{{ $ebook->writer_title }}</strong></td>
                 </tr>
                 <tr>
                     <td>{{ trans('ebook::common.pages') }}</td>
@@ -65,11 +61,11 @@
                 </tr>
                 <tr>
                     <td>{{ trans('ebook::common.publisher_id') }}</td>
-                    <td><strong>{{ $ebook->present()->publisher }}</strong></td>
+                    <td><strong>{{ $ebook->publisher_title }}</strong></td>
                 </tr>
                 <tr>
                     <td>{{ trans('ebook::common.pplace_id') }}</td>
-                    <td><strong>{{ $ebook->present()->pplace }}</strong></td>
+                    <td><strong>{{ $ebook->pplace_title }}</strong></td>
                 </tr>
                 <tr>
                     <td>{{ trans('ebook::common.user_id') }}</td>
@@ -93,7 +89,7 @@
     <table class="table table-hover table-striped table-bordered table-detail">
         <tr>
             <td>{{ trans('ebook::common.summary') }}</td>
-            <td>{!! $ebook->summary !!}</td>
+            <td class="white-bg">{!! $ebook->summary !!}</td>
         </tr>
     </table>
 @stop

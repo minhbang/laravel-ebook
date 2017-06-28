@@ -1,7 +1,7 @@
 <?php
 namespace Minhbang\Ebook;
 
-use Minhbang\Enum\Enum;
+use Minhbang\Enum\EnumModel;
 use Minhbang\Category\Category;
 use Minhbang\Kit\Support\VnString;
 use DB;
@@ -36,7 +36,7 @@ class Seeder
         $ebooks = [];
         foreach ($data as $ebook) {
             $category = Category::findBy('slug', $ebook[5]);
-            $security = Enum::where('slug', $ebook[6])->where('type', 'ebook.security')->first();
+            $security = EnumModel::where('slug', $ebook[6])->where('type', 'ebook.security')->first();
             if ($security && $category && is_file("$dir/{$ebook[1]}.pdf")) {
                 $pdf = new Pdf("$dir/{$ebook[1]}.pdf");
                 $pdf->saveImage("$tmp_dir/{$ebook[1]}.png");
@@ -68,10 +68,10 @@ class Seeder
                     'pages'          => $ebook[4],
                     'category_id'    => $category->id,
                     'security_id'    => $security->id,
-                    'language_id'    => Enum::firstOrCreate(['title' => $ebook[7], 'type' => 'ebook.language'], ['slug' => VnString::to_slug($ebook[7])])->id,
-                    'writer_id'      => Enum::firstOrCreate(['title' => $ebook[8], 'type' => 'ebook.writer'], ['slug' => VnString::to_slug($ebook[8])])->id,
-                    'publisher_id'   => Enum::firstOrCreate(['title' => $ebook[9], 'type' => 'ebook.publisher'], ['slug' => VnString::to_slug($ebook[9])])->id,
-                    'pplace_id'      => Enum::firstOrCreate(['title' => $ebook[10], 'type' => 'ebook.pplace'], ['slug' => VnString::to_slug($ebook[10])])->id,
+                    'language_id'    => EnumModel::firstOrCreate(['title' => $ebook[7], 'type' => 'ebook.language'], ['slug' => VnString::to_slug($ebook[7])])->id,
+                    'writer_id'      => EnumModel::firstOrCreate(['title' => $ebook[8], 'type' => 'ebook.writer'], ['slug' => VnString::to_slug($ebook[8])])->id,
+                    'publisher_id'   => EnumModel::firstOrCreate(['title' => $ebook[9], 'type' => 'ebook.publisher'], ['slug' => VnString::to_slug($ebook[9])])->id,
+                    'pplace_id'      => EnumModel::firstOrCreate(['title' => $ebook[10], 'type' => 'ebook.pplace'], ['slug' => VnString::to_slug($ebook[10])])->id,
                     'user_id'        => $ebook[11],
                     'status'         => $ebook[12],
                     'hit'            => $ebook[13],

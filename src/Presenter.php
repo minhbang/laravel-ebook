@@ -1,10 +1,11 @@
 <?php
+
 namespace Minhbang\Ebook;
 
-use Minhbang\Enum\EnumPresenter;
+use Laracasts\Presenter\Presenter as BasePresenter;
 use Html;
+use Minhbang\File\File;
 use Minhbang\Kit\Traits\Presenter\DatetimePresenter;
-use Minhbang\Kit\Traits\Presenter\FilePresenter;
 use Minhbang\Status\StatusPresenter;
 
 /**
@@ -13,38 +14,33 @@ use Minhbang\Status\StatusPresenter;
  * @property-read Ebook $entity
  * @package Minhbang\Ebook
  */
-class Presenter extends EnumPresenter
-{
+class Presenter extends BasePresenter {
     use DatetimePresenter;
-    use FilePresenter;
     use StatusPresenter;
-
-    /**
-     * @param string $except
-     *
-     * @return string
-     */
-    public function securityFormated($except = null)
-    {
-        $css = $this->entity->security_params;
-
-        return $css && $except && ($css === $except) ? '' : "<span class=\"label label-{$css}\">{$this->entity->security}</span>";
-    }
 
     /**
      * @return null|string
      */
-    public function category()
-    {
+    public function category() {
         return $this->entity->category ? $this->entity->category->title : null;
     }
 
     /**
      * @return string
      */
-    public function summary()
-    {
-        return str_limit($this->entity->summary, setting('display.summary_limit'));
+    public function summary() {
+        return str_limit( $this->entity->summary, setting( 'display.summary_limit' ) );
+    }
+
+    /**
+     * @param string $except
+     *
+     * @return string
+     */
+    public function security( $except = null ) {
+        $css = $this->entity->security_params ?: 'default';
+
+        return $except && ( $css === $except ) ? '' : "<span class=\"label label-{$css}\">{$this->entity->security_title}</span>";
     }
 
     /**
@@ -55,23 +51,22 @@ class Presenter extends EnumPresenter
      *
      * @return string
      */
-    public function featured_image($class = 'img-responsive', $sm = false, $title = false, $size = '_md')
-    {
-        $src = $this->entity->featuredImageUrl($sm);
+    public function featured_image( $class = 'img-responsive', $sm = false, $title = false, $size = '_md' ) {
+        $src = $this->entity->featuredImageUrl( $sm );
         $class = $class ? " class =\"$class\"" : '';
-        $html = $title ? "<div class=\"title\">{$this->entity->name}</div>" : '';
+        $html = $title ? "<div class=\"title\">{$this->entity->title}</div>" : '';
         $width = $this->entity->config['featured_image']["width{$size}"];
         $height = $this->entity->config['featured_image']["height{$size}"];
+        $src = $src ? "src=\"$src\"" : "data-src=\"holder.js/48x72\"";
 
-        return "<img{$class} src=\"$src\" title=\"{$this->entity->name}\" width=\"$width\" height=\"$height\"/>{$html}";
+        return "<img{$class} $src title=\"{$this->entity->title}\" width=\"$width\" height=\"$height\"/>{$html}";
     }
 
     /**
      * @return string
      */
-    public function featured_image_lightbox()
-    {
-        $img = $this->featured_image('', true, false, '_sm');
+    public function featured_image_lightbox() {
+        $img = $this->featured_image( '', true, false, '_sm' );
 
         return "<a href=\"{$this->entity->featured_image_url}\" data-lightbox=\"ebook-{$this->entity->id}\">{$img}</a>";
     }
@@ -79,23 +74,20 @@ class Presenter extends EnumPresenter
     /**
      * @return string
      */
-    public function title_block()
-    {
-        /** @var \Minhbang\Ebook\Ebook $model */
-        $model = $this->entity;
-
-        $title = $model->allowed(user(), 'update') ? Html::linkQuickUpdate(
-            $model->id,
-            $model->title,
+    public function title_block() {
+        $title = $this->entity->isReady( 'update' ) ? Html::linkQuickUpdate(
+            $this->entity->id,
+            $this->entity->title,
             [
                 'attr'      => 'title',
-                'title'     => trans("ebook::common.title"),
+                'title'     => trans( "ebook::common.title" ),
                 'class'     => 'w-lg',
                 'placement' => 'top',
             ]
-        ) : $model->title;
-        $info = "<small class='text-muted'>{$model->writer}, " . trans('ebook::common.publisher_id_th') . ": {$model->publisher}</small><br>";
-        $info .= "<small class='text-muted'>{$this->fileicon()} {$this->filesize()} - {$this->createdAt()}</small>";
+        ) : $this->entity->title;
+        $info = "<small class='text-muted'>{$this->entity->writer_title}, " . trans( 'ebook::common.publisher_id_th' ) . ": {$this->entity->publisher_title}</small><br>";
+
+        //$info .= "<small class='text-muted'>{$this->fileicon()} {$this->filesize()} - {$this->createdAt()}</small>";
 
         return "<div class=\"title\">{$title}</div><div class=\"info\">{$info}</div>";
     }
@@ -103,15 +95,32 @@ class Presenter extends EnumPresenter
     /**
      * @return string
      */
-    public function title_block_1()
-    {
-        /** @var \Minhbang\Ebook\Ebook $model */
-        $model = $this->entity;
-        $title = '<a href="' . route('ilib.backend.ebook.show', ['ebook' => $model->id]) . '">' . $model->title . '</a>';
-        $info = "<small class='text-muted'>{$model->writer}, " . trans('ebook::common.publisher_id_th') . ": {$model->publisher}</small><br>";
-        $info .= "<small class='text-muted'>{$this->fileicon()} {$this->filesize()} - {$this->createdAt()}</small>";
+    public function title_block_1() {
+        $title = '<a href="' . route( 'ilib.backend.ebook.show',
+                [ 'ebook' => $this->entity->id ] ) . '">' . $this->entity->title . '</a>';
+        $info = "<small class='text-muted'>- {$this->entity->writer_title}, " . trans( 'ebook::common.publisher_id_th' ) . ": {$this->entity->publisher_title}</small><br>";
+
+        //$info .= "<small class='text-muted'>{$this->fileicon()} {$this->filesize()} - {$this->createdAt()}</small>";
+        $info .= "<small class='text-muted'>- {$this->createdAt()}</small>";
 
         return "<div class=\"title\">{$title}</div><div class=\"info\">{$info}</div>";
+    }
+
+    /**
+     * Danh sách file của ebook này
+     *
+     * @param string $viewRoute
+     *
+     * @param array $params
+     *
+     * @return string
+     */
+    public function files( $viewRoute = 'backend.file.preview', $params = [] ) {
+        $files = $this->entity->files->map( function ( File $file ) use ( $viewRoute, $params ) {
+            return '<li>' . $file->forReturn( $viewRoute, $params )['title'] . '</li>';
+        } )->all();
+
+        return "<ol>" . implode( "", $files ) . "</ol>";
     }
     /**
      * Ex: danh sách tài liệu liên quan, tài liệu mới nhất
