@@ -27,6 +27,7 @@ class EbookTransformer extends ModelTransformer {
             'featured_image' => $ebook->present()->featured_image_lightbox,
             'title'          => $ebook->present()->title_block,
             'files'          => $ebook->present()->files( "{$this->zone}.ebook.preview" ),
+            'updated_at'     => $ebook->present()->updatedAt(['template' => ':time, :date']),
             'status'         => $this->isPTTV ?
                 $ebook->present()->statusQuickUpdate( route( "{$this->zone}.ebook.status", [ 'ebook' => $ebook->id, 'status' => 'STATUS' ] ) ) :
                 $ebook->present()->status,

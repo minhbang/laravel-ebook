@@ -36,11 +36,11 @@ class BackendController extends BaseController {
                 [ route( $this->route_prefix . 'backend.ebook.index' ) => $name, '#' => $status_title ]
             );
         } else {
-            $this->buildHeading( [ trans( 'common.manage' ), $name ], 'fa-file-pdf-o', [ '#' => $name ] );
+            $this->buildHeading( [ trans( 'common.manage' ), $name ], 'fa-file-pdf-o', [ '#' => $name ]);
         }
         $builder->ajax( route( $this->route_prefix . 'backend.ebook.data', [ 'status' => $status ] ) );
         $html = $builder->columns( [
-            [ 'data' => 'id', 'name' => 'id', 'title' => 'ID', 'class' => 'min-width text-right' ],
+            [ 'data' => 'id', 'name' => 'id', 'title' => 'ID', 'class' => 'min-width text-right', 'orderable' => false ],
             [
                 'data'       => 'featured_image',
                 'name'       => 'featured_image',
@@ -56,6 +56,12 @@ class BackendController extends BaseController {
                 'title'      => trans( 'ebook::common.files' ),
                 'orderable'  => false,
                 'searchable' => false,
+            ],
+            [
+                'data'  => 'updated_at',
+                'name'  => 'updated_at',
+                'title' => trans( 'common.updated_at' ),
+                'class' => 'min-width',
             ],
             [
                 'data'       => 'status',
@@ -108,7 +114,8 @@ class BackendController extends BaseController {
             [
                 route( $this->route_prefix . 'backend.ebook.index' ) => trans( 'ebook::common.ebook' ),
                 '#'                                                  => trans( 'common.create' ),
-            ]
+            ],
+            [[ '#', trans( 'common.help' ), [ 'class' => 'startTour', 'icon' => 'fa-question-circle-o', 'size' => 'sm', 'type' => 'white' ]]]
         );
         $selectize_statuses = $this->getSelectizeStatuses();
         $files = [];
@@ -192,7 +199,8 @@ class BackendController extends BaseController {
             $this->buildHeading(
                 [ trans( 'common.update' ), $name ],
                 'edit',
-                [ route( $this->route_prefix . 'backend.ebook.index' ) => $name, '#' => trans( 'common.edit' ) ]
+                [ route( $this->route_prefix . 'backend.ebook.index' ) => $name, '#' => trans( 'common.edit' ) ],
+                [[ '#', trans( 'common.help' ), [ 'icon' => 'fa-question-circle-o', 'size' => 'sm', 'type' => 'primary' ]]]
             );
             $files = $ebook->filesForReturn();
 
@@ -217,9 +225,13 @@ class BackendController extends BaseController {
      */
     public function update( EbookRequest $request, Ebook $ebook ) {
         if ( $ebook->isReady( 'update' ) ) {
+            $user_upload = $ebook->status == 'uploaded';
             $ebook->fill( $request->all() + [ 'featured' => 0 ] );
             $ebook->fillFeaturedImage( $request );
-            $ebook->user_id = user( 'id' );
+            // Todo mở rộng tính năng: ghi nhận Bạn đọc upload và ghi nhật ký các lần chỉnh sữa
+            if ( $user_upload ) {
+                $ebook->user_id = user( 'id' );
+            }
             $ebook->save();
             $ebook->fillFiles( $request->get( 'selectedFiles' ) );
             Session::flash(
@@ -248,7 +260,10 @@ class BackendController extends BaseController {
      * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
      */
-    public function destroy( Ebook $ebook ) {
+    public
+    function destroy(
+        Ebook $ebook
+    ) {
         return $ebook->isReady( 'update' ) && $ebook->delete() ?
             response()->json(
                 [
@@ -271,7 +286,11 @@ class BackendController extends BaseController {
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function status( Ebook $ebook, $status ) {
+    public
+    function status(
+        Ebook $ebook,
+        $status
+    ) {
         $result = user_is( 'thu_vien.phu_trach' ) ? 'success' : 'error';
         if ( $result == 'success' ) {
             $ebook->update( [ 'status' => $status ] );
@@ -285,7 +304,10 @@ class BackendController extends BaseController {
      *
      * @param \Minhbang\File\File $file
      */
-    public function preview( File $file ) {
+    public
+    function preview(
+        File $file
+    ) {
         $file->response();
     }
 
@@ -294,7 +316,8 @@ class BackendController extends BaseController {
      *
      * @return array
      */
-    protected function quickUpdateAttributes() {
+    protected
+    function quickUpdateAttributes() {
         return [
             'title' => [
                 'rules' => [
@@ -315,7 +338,10 @@ class BackendController extends BaseController {
      *
      * @return bool
      */
-    protected function quickUpdateAllowed( $model )//, $attribute, $value)
+    protected
+    function quickUpdateAllowed(
+        $model
+    )//, $attribute, $value)
     {
         return $model->isReady( 'update' );
     }
@@ -323,7 +349,8 @@ class BackendController extends BaseController {
     /**
      * @return array
      */
-    protected function getSelectizeStatuses() {
+    protected
+    function getSelectizeStatuses() {
         return Status::of( Ebook::class )->groupByLevel();
     }
 }

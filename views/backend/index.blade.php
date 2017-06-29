@@ -56,4 +56,9 @@
     }
 </script>
 {!! $html->scripts() !!}
+<script type="text/javascript">
+    $(document).ready(function () {
+        window.LaravelDataTables['ebook-manage'].order([4, 'desc']).draw();
+    });
+</script>
 @endpush
