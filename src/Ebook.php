@@ -64,7 +64,7 @@ use DB;
  * @property-read \Minhbang\User\User $user
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook categorized( $category = null )
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model except( $ids )
- * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook featured()
+ * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook featured( $limit = 10 )
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Kit\Extensions\Model findText( $column, $text )
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook forSelectize( $take = 50 )
  * @method static \Illuminate\Database\Query\Builder|\Minhbang\Ebook\Ebook mine()
@@ -214,11 +214,12 @@ class Ebook extends Model {
 
     /**
      * @param \Illuminate\Database\Query\Builder|static $query
+     * @param int $limit
      *
      * @return \Illuminate\Database\Query\Builder|static
      */
-    public function scopeFeatured( $query ) {
-        return $query->where( "{$this->table}.featured", 1 );
+    public function scopeFeatured( $query, $limit = 10 ) {
+        return $query->where( "{$this->table}.featured", 1 )->take( $limit );
     }
 
     /**
