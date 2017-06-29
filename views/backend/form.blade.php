@@ -11,7 +11,7 @@
                     </div>
                 </div>
                 <div class="ibox-content">
-                    <div class="form-group{{ $errors->has("title") ? ' has-error':'' }}">
+                    <div class="form-group tour_step1{{ $errors->has("title") ? ' has-error':'' }}">
                         {!! Form::label("title", trans('ebook::common.title'), ['class' => "control-label"]) !!}
                         {!! Form::text("title", null, ['class' => 'has-slug form-control',
                         'data-slug_target' => "#title-slug"]) !!}
@@ -19,14 +19,14 @@
                             <p class="help-block">{{ $errors->first("title") }}</p>
                         @endif
                     </div>
-                    <div class="form-group{{ $errors->has("slug") ? ' has-error':'' }}">
+                    <div class="form-group tour_step2{{ $errors->has("slug") ? ' has-error':'' }}">
                         {!! Form::label("slug", trans('ebook::common.slug'), ['class' => "control-label"]) !!}
                         {!! Form::text("slug", null, ['id'=>"title-slug", 'class' => 'form-control']) !!}
                         @if($errors->has("slug"))
                             <p class="help-block">{{ $errors->first("slug") }}</p>
                         @endif
                     </div>
-                    <div class="form-group{{ $errors->has("summary") ? ' has-error':'' }}">
+                    <div class="form-group tour_step3{{ $errors->has("summary") ? ' has-error':'' }}">
                         {!! Form::label("summary", trans('ebook::common.summary'), ['class' => "control-label"]) !!}
                         {!! Form::textarea("summary", null, [
                             'class' => 'form-control wysiwyg',
@@ -52,7 +52,7 @@
                         <div class="col-lg-12 col-md-7">
                             <div class="row">
                                 <div class="col-lg-12 col-xs-6">
-                                    <div class="form-group{{ $errors->has('featured') ? ' has-error':'' }}">
+                                    <div class="form-group tour_step4{{ $errors->has('featured') ? ' has-error':'' }}">
                                         {!! Form::label('featured',  trans('ebook::common.featured_ebook'), ['class'=> 'control-label']) !!}
                                         <br>
                                         {!! Form::checkbox('featured', 1, null,['class'=>'switch', 'data-on-text'=>trans('common.yes'), 'data-off-text'=>trans('common.no')]) !!}
@@ -62,9 +62,9 @@
                                     </div>
                                 </div>
                                 <div class="col-lg-12 col-xs-6">
-                                    <div class="form-group{{ $errors->has('status') ? ' has-error':'' }}">
+                                    <div class="form-group tour_step5{{ $errors->has('status') ? ' has-error':'' }}">
                                         {!! Form::label('status',  trans('ebook::common.status'), ['class'=> 'control-label']) !!}
-                                        {!! Form::select('status', $selectize_statuses, null, ['id' => 'selectize-status', 'class' => 'form-control']) !!}
+                                        {!! Form::select('status', $selectize_statuses, null, ['prompt' =>'', 'id' => 'selectize-status', 'class' => 'form-control']) !!}
                                         @if($errors->has('status'))
                                             <p class="help-block">{{ $errors->first('status') }}</p>
                                         @endif
@@ -72,7 +72,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group{{ $errors->has('category_id') ? ' has-error':'' }}">
+                            <div class="form-group tour_step6{{ $errors->has('category_id') ? ' has-error':'' }}">
                                 {!! Form::label('category_id', trans('category::common.category'), ['class' => 'control-label']) !!}
                                 {!! Form::select('category_id', $categories, null, ['prompt' =>'', 'class' => 'form-control selectize-tree']) !!}
                                 @if($errors->has('category_id'))
@@ -81,21 +81,21 @@
                             </div>
                             <div class="row">
                                 <div class="col-xs-6">
-                                    <div class="form-group{{ $errors->has('security_id') ? ' has-error':'' }}">
+                                    <div class="form-group tour_step7{{ $errors->has('security_id') ? ' has-error':'' }}">
                                         {!! Form::label('security_id', trans('ebook::common.security_id'), ['class' => 'control-label']) !!}
                                         {!! Form::select('security_id', $securities, null, ['prompt'=>'', 'class' => 'form-control selectize']) !!}
                                         @if($errors->has('security_id'))
                                             <p class="help-block">{{ $errors->first('security_id') }}</p>
                                         @endif
                                     </div>
-                                    <div class="form-group{{ $errors->has('writer_id') ? ' has-error':'' }}">
+                                    <div class="form-group tour_step8{{ $errors->has('writer_id') ? ' has-error':'' }}">
                                         {!! Form::label('writer_id', trans('ebook::common.writer_id'), ['class' => 'control-label']) !!}
-                                        {!! Form::select('writer_id', $writers, null, ['data-creatable'=>true, 'prompt'=>'', 'class' => 'form-control selectize']) !!}
+                                        {!! Form::select('writer_id', $writers, null, ['data-creatable'=>'on', 'prompt'=>'', 'class' => 'form-control selectize']) !!}
                                         @if($errors->has('writer_id'))
                                             <p class="help-block">{{ $errors->first('writer_id') }}</p>
                                         @endif
                                     </div>
-                                    <div class="form-group{{ $errors->has('pages') ? ' has-error':'' }}">
+                                    <div class="form-group tour_step12{{ $errors->has('pages') ? ' has-error':'' }}">
                                         {!! Form::label('pages', trans('ebook::common.pages'), ['class' =>
                                         'control-label'])
                                          !!}
@@ -104,7 +104,7 @@
                                             <p class="help-block">{{ $errors->first('pages') }}</p>
                                         @endif
                                     </div>
-                                    <div class="form-group{{ $errors->has('pyear') ? ' has-error':'' }}">
+                                    <div class="form-group tour_step13{{ $errors->has('pyear') ? ' has-error':'' }}">
                                         {!! Form::label('pyear', trans('ebook::common.pyear'), ['class' => 'control-label']) !!}
                                         {!! Form::text('pyear', null, ['class' => 'form-control']) !!}
                                         @if($errors->has('pyear'))
@@ -114,23 +114,23 @@
 
                                 </div>
                                 <div class="col-xs-6">
-                                    <div class="form-group{{ $errors->has('language_id') ? ' has-error':'' }}">
+                                    <div class="form-group tour_step9{{ $errors->has('language_id') ? ' has-error':'' }}">
                                         {!! Form::label('language_id', trans('ebook::common.language_id'), ['class' => 'control-label']) !!}
-                                        {!! Form::select('language_id', $languages, null, ['data-creatable'=>true, 'prompt' =>'', 'class' => 'form-control selectize']) !!}
+                                        {!! Form::select('language_id', $languages, null, ['data-creatable'=>'on', 'prompt' =>'', 'class' => 'form-control selectize']) !!}
                                         @if($errors->has('language_id'))
                                             <p class="help-block">{{ $errors->first('language_id') }}</p>
                                         @endif
                                     </div>
-                                    <div class="form-group{{ $errors->has('publisher_id') ? ' has-error':'' }}">
+                                    <div class="form-group tour_step10{{ $errors->has('publisher_id') ? ' has-error':'' }}">
                                         {!! Form::label('publisher_id', trans('ebook::common.publisher_id'), ['class' => 'control-label']) !!}
-                                        {!! Form::select('publisher_id', $publishers, null, ['data-creatable'=>true, 'prompt'=>'', 'class' => 'form-control selectize']) !!}
+                                        {!! Form::select('publisher_id', $publishers, null, ['data-creatable'=>'on', 'prompt'=>'', 'class' => 'form-control selectize']) !!}
                                         @if($errors->has('publisher_id'))
                                             <p class="help-block">{{ $errors->first('publisher_id') }}</p>
                                         @endif
                                     </div>
-                                    <div class="form-group{{ $errors->has('pplace_id') ? ' has-error':'' }}">
+                                    <div class="form-group tour_step11{{ $errors->has('pplace_id') ? ' has-error':'' }}">
                                         {!! Form::label('pplace_id', trans('ebook::common.pplace_id'), ['class' =>'control-label']) !!}
-                                        {!! Form::select('pplace_id', $pplaces, null, ['data-creatable'=>true, 'prompt'=>'', 'class' => 'form-control selectize']) !!}
+                                        {!! Form::select('pplace_id', $pplaces, null, ['data-creatable'=>'on', 'prompt'=>'', 'class' => 'form-control selectize']) !!}
                                         @if($errors->has('pplace_id'))
                                             <p class="help-block">{{ $errors->first('pplace_id') }}</p>
                                         @endif
@@ -139,7 +139,7 @@
                             </div>
                         </div>
                         <div class="col-lg-12 col-md-5">
-                            <div class="form-group form-image{{ $errors->has('image') ? ' has-error':'' }}">
+                            <div class="form-group tour_step14 form-image{{ $errors->has('image') ? ' has-error':'' }}">
                                 {!! Form::label('image', trans('ebook::common.featured_image'), ['class' =>'control-label']) !!}
                                 {!! Form::selectImage('image', ['thumbnail' => [
                                     'url' => $ebook->featured_image_url,
@@ -160,7 +160,7 @@
     {!! Form::close() !!}
 
     @include('file::backend._upload_form', ['tmp' => 1])
-    <div class="ibox ibox-table">
+    <div class="ibox ibox-table tour_step15">
         <div class="ibox-title">
             <h5>{!! trans('ebook::common.files') !!}</h5>
             <div class="buttons">
@@ -263,6 +263,38 @@
                 addFile(file);
             }
         });
+
+        // Hướng dẫn sử dụng ---------------------
+        var tour = new Tour({
+            steps: [
+                    @for ($i = 1; $i <= 15; $i++)
+                {
+                    element: ".tour_step{{$i}}",
+                    title: "{{trans("ebook::tour.step{$i}.title")}}",
+                    content: "{!!trans("ebook::tour.step{$i}.content")!!}",
+                    placement: "top",
+                    backdrop: true,
+                    backdropContainer: '#app',
+                },
+                @endfor
+            ],
+            template: "<div class='popover'>" +
+            "   <div class='arrow'></div>" +
+            "   <h3 class='popover-title'></h3>" +
+            "   <div class='popover-content'></div>" +
+            "   <div class='popover-navigation'>" +
+            "       <div class='btn-group'><button class='btn btn-white' data-role='prev'>« {{trans('common.previous')}}</button>" +
+            "       <button class='btn btn-white' data-role='next'>{{trans('common.next')}} »</button></div>" +
+            "       <button class='btn btn-success' data-role='end'>{{trans('common.end')}}</button>" +
+            "   </div>" +
+            "</div>",
+        });
+        // Initialize the tour
+        tour.init();
+        $('.startTour').click(function (e) {
+            tour.restart();
+            e.preventDefault();
+        })
     });
 </script>
 @endpush
