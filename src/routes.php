@@ -10,6 +10,8 @@ Route::group(
         Route::group(
             [ 'prefix' => 'ebook', 'as' => 'ebook.' ],
             function () {
+                Route::get( 'publishAll', [ 'as' => 'publishAll', 'uses' => 'BackendController@publishAll' ] );
+                Route::get( 'fixNoImage/{limit?}', [ 'as' => 'fixNoImage', 'uses' => 'BackendController@fixNoImage' ] );
                 Route::get( 'status/{status}', [ 'as' => 'index_status', 'uses' => 'BackendController@index' ] );
                 Route::get( 'data', [ 'as' => 'data', 'uses' => 'BackendController@data' ] );
                 Route::get( '{file}/preview', [ 'as' => 'preview', 'uses' => 'BackendController@preview' ] );

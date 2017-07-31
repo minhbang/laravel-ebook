@@ -1,6 +1,5 @@
 <?php namespace Minhbang\Ebook;
 
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use MenuManager;
@@ -43,10 +42,9 @@ class ServiceProvider extends BaseServiceProvider {
         // model bindings
         $router->model( 'ebook', $class );
 
-        // Custom Polymorphic Types
-        Relation::morphMap( [ 'ebooks' => $class ] );
-
+        Kit::alias( $class, 'ebook' );
         Kit::title( $class, trans( 'ebook::common.ebook' ) );
+
         Kit::writeablePath( 'my_upload:' . config( 'ebook.featured_image.dir' ), 'trans::ebook::common.featured_image_dir' );
         CategoryManager::register( $class );
         MenuManager::addItems( config( 'ebook.menus' ) );

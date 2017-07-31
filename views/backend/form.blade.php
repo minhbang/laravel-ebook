@@ -141,6 +141,7 @@
                         <div class="col-lg-12 col-md-5">
                             <div class="form-group tour_step14 form-image{{ $errors->has('image') ? ' has-error':'' }}">
                                 {!! Form::label('image', trans('ebook::common.featured_image'), ['class' =>'control-label']) !!}
+                                <p class="help-block">{{ trans('ebook::common.featured_image_hint') }}</p>
                                 {!! Form::selectImage('image', ['thumbnail' => [
                                     'url' => $ebook->featured_image_url,
                                     'width' => $ebook->config['featured_image']['width'],
@@ -203,10 +204,6 @@
             //upload image
             imageUploadURL: '{!! route('image.store') !!}',
             imageMaxSize: {{setting('system.max_image_size') * 1024 * 1024 }}, //bytes
-            // load image
-            imageManagerLoadURL: '{!! route('image.data') !!}',
-            // custom options
-            imageDeleteURL: '{!! route('image.delete') !!}'
         });
         var ebook_form = $('#ebook-form');
         $("button.save").click(function (e) {

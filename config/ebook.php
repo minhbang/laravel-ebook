@@ -1,6 +1,5 @@
 <?php
 return [
-    'max_file_size'  => 80 * 1024, // 80*1024 Kb
     // Hình bài tài liệu, lưu trong thư mục con của <app.paths.upload>
     'featured_image' => [
         'dir'       => 'images/ebooks',
@@ -10,6 +9,7 @@ return [
         'height_md' => 212,
         'width_sm'  => 70,
         'height_sm' => 106,
+        'method' => 'resize',
     ],
     'category'       => [
         'title'     => 'ebook::common.ebooks',

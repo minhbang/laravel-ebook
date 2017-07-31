@@ -59,7 +59,7 @@ class Presenter extends BasePresenter {
         $height = $this->entity->config['featured_image']["height{$size}"];
         $src = $src ? "src=\"$src\"" : "data-src=\"holder.js/48x72\"";
 
-        return "<img{$class} $src title=\"{$this->entity->title}\" width=\"$width\" height=\"$height\"/>{$html}";
+        return "<img{$class} $src width=\"$width\" height=\"$height\"/>{$html}";
     }
 
     /**

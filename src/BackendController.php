@@ -3,6 +3,7 @@
 use Minhbang\Kit\Extensions\BackendController as BaseController;
 use Minhbang\Ebook\Request as EbookRequest;
 use Minhbang\Kit\Traits\Controller\QuickUpdateActions;
+use Exception;
 use Session;
 use Request;
 use Minhbang\Kit\Support\VnString;
@@ -11,6 +12,7 @@ use Minhbang\Kit\Extensions\DatatableBuilder as Builder;
 use Datatables;
 use CategoryManager;
 use Status;
+use Authority;
 
 /**
  * Class BackendController
@@ -19,6 +21,52 @@ use Status;
  */
 class BackendController extends BaseController {
     use QuickUpdateActions;
+
+    public function publishAll() {
+        if ( Authority::user()->isSuperAdmin() ) {
+            Ebook::where( 'status', '<>', 'published' )->update( [ 'status' => 'published' ] );
+
+            return "Done...";
+        } else {
+            return "Go Away";
+        }
+    }
+
+    /**
+     * Tự động tạo ảnh bìa cho Ebook lấy từ trang đầu tiên của file PDF
+     *
+     * @param int $limit
+     *
+     * @return string
+     */
+    public function fixNoImage( $limit = 5 ) {
+        $query = Ebook::with( 'files' )->whereNull( 'featured_image' )->orderUpdated();
+        $total = $query->count();
+        $ebooks = $query->take( $limit )->get();
+        $errorFiles = [];
+        $count = 0;
+        foreach ( $ebooks as $ebook ) {
+            /** @var \Minhbang\File\File $file */
+            if ( $file = $ebook->firstFile() ) {
+                try {
+                    if ( $image = $file->pdfThumbnail() ) {
+                        $ebook->fillFeaturedImage( $image );
+                        $ebook->timestamps = false;
+                        $ebook->save();
+                        $count ++;
+                    } else {
+                        $errorFiles[] = "$ebook->title <code>{$file->file_path}<code>";
+                    }
+                } catch ( Exception $e ) {
+                    $errorFiles[] = "$ebook->title <code>{$file->file_path}<code>";
+                }
+            } else {
+                $errorFiles[] = "$ebook->title <code>No File<code>";
+            }
+        }
+
+        return "Done...({$count}/{$total})<br>Error:<ol><li>" . implode( '</li><li>', $errorFiles ) . "</li></ol>";
+    }
 
     /**
      * @param \Minhbang\Kit\Extensions\DatatableBuilder $builder
@@ -36,7 +84,7 @@ class BackendController extends BaseController {
                 [ route( $this->route_prefix . 'backend.ebook.index' ) => $name, '#' => $status_title ]
             );
         } else {
-            $this->buildHeading( [ trans( 'common.manage' ), $name ], 'fa-file-pdf-o', [ '#' => $name ]);
+            $this->buildHeading( [ trans( 'common.manage' ), $name ], 'fa-file-pdf-o', [ '#' => $name ] );
         }
         $builder->ajax( route( $this->route_prefix . 'backend.ebook.data', [ 'status' => $status ] ) );
         $html = $builder->columns( [
@@ -115,7 +163,7 @@ class BackendController extends BaseController {
                 route( $this->route_prefix . 'backend.ebook.index' ) => trans( 'ebook::common.ebook' ),
                 '#'                                                  => trans( 'common.create' ),
             ],
-            [[ '#', trans( 'common.help' ), [ 'class' => 'startTour', 'icon' => 'fa-question-circle-o', 'size' => 'sm', 'type' => 'white' ]]]
+            [ [ '#', trans( 'common.help' ), [ 'class' => 'startTour', 'icon' => 'fa-question-circle-o', 'size' => 'sm', 'type' => 'white' ] ] ]
         );
         $selectize_statuses = $this->getSelectizeStatuses();
         $files = [];
@@ -132,12 +180,21 @@ class BackendController extends BaseController {
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function store( EbookRequest $request ) {
+        $files = explode( ',', $request->get( 'selectedFiles' ) );
         $ebook = new Ebook();
         $ebook->fill( $request->all() );
-        $ebook->fillFeaturedImage( $request );
+
+        if ( $request->hasFile( 'image' ) ) {
+            $ebook->fillFeaturedImage( $request );
+        } else {
+            if ( ( $file = File::find( $files[0] ) ) && ( $image = $file->pdfThumbnail() ) ) {
+                $ebook->fillFeaturedImage( $image );
+            }
+        }
+
         $ebook->user_id = user( 'id' );
         $ebook->save();
-        $ebook->fillFiles( $request->get( 'selectedFiles' ) );
+        $ebook->fillFiles( $files );
         Session::flash(
             'message',
             [
@@ -200,7 +257,7 @@ class BackendController extends BaseController {
                 [ trans( 'common.update' ), $name ],
                 'edit',
                 [ route( $this->route_prefix . 'backend.ebook.index' ) => $name, '#' => trans( 'common.edit' ) ],
-                [[ '#', trans( 'common.help' ), [ 'icon' => 'fa-question-circle-o', 'size' => 'sm', 'type' => 'primary' ]]]
+                [ [ '#', trans( 'common.help' ), [ 'icon' => 'fa-question-circle-o', 'size' => 'sm', 'type' => 'primary' ] ] ]
             );
             $files = $ebook->filesForReturn();
 
@@ -225,15 +282,24 @@ class BackendController extends BaseController {
      */
     public function update( EbookRequest $request, Ebook $ebook ) {
         if ( $ebook->isReady( 'update' ) ) {
+            $files = explode( ',', $request->get( 'selectedFiles' ) );
             $user_upload = $ebook->status == 'uploaded';
             $ebook->fill( $request->all() + [ 'featured' => 0 ] );
-            $ebook->fillFeaturedImage( $request );
+
+            if ( $request->hasFile( 'image' ) ) {
+                $ebook->fillFeaturedImage( $request );
+            } else {
+                if ( empty( $ebook->featured_image ) && ( $file = File::find( $files[0] ) ) && ( $image = $file->pdfThumbnail() ) ) {
+                    $ebook->fillFeaturedImage( $image );
+                }
+            }
+
             // Todo mở rộng tính năng: ghi nhận Bạn đọc upload và ghi nhật ký các lần chỉnh sữa
             if ( $user_upload ) {
                 $ebook->user_id = user( 'id' );
             }
             $ebook->save();
-            $ebook->fillFiles( $request->get( 'selectedFiles' ) );
+            $ebook->fillFiles( $files );
             Session::flash(
                 'message',
                 [
@@ -260,10 +326,7 @@ class BackendController extends BaseController {
      * @return \Illuminate\Http\JsonResponse
      * @throws \Exception
      */
-    public
-    function destroy(
-        Ebook $ebook
-    ) {
+    public function destroy( Ebook $ebook ) {
         return $ebook->isReady( 'update' ) && $ebook->delete() ?
             response()->json(
                 [
@@ -286,11 +349,7 @@ class BackendController extends BaseController {
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public
-    function status(
-        Ebook $ebook,
-        $status
-    ) {
+    public function status( Ebook $ebook, $status ) {
         $result = user_is( 'thu_vien.phu_trach' ) ? 'success' : 'error';
         if ( $result == 'success' ) {
             $ebook->update( [ 'status' => $status ] );
@@ -304,10 +363,7 @@ class BackendController extends BaseController {
      *
      * @param \Minhbang\File\File $file
      */
-    public
-    function preview(
-        File $file
-    ) {
+    public function preview( File $file ) {
         $file->response();
     }
 
@@ -316,8 +372,7 @@ class BackendController extends BaseController {
      *
      * @return array
      */
-    protected
-    function quickUpdateAttributes() {
+    protected function quickUpdateAttributes() {
         return [
             'title' => [
                 'rules' => [
@@ -338,10 +393,7 @@ class BackendController extends BaseController {
      *
      * @return bool
      */
-    protected
-    function quickUpdateAllowed(
-        $model
-    )//, $attribute, $value)
+    protected function quickUpdateAllowed( $model )//, $attribute, $value)
     {
         return $model->isReady( 'update' );
     }
@@ -349,8 +401,7 @@ class BackendController extends BaseController {
     /**
      * @return array
      */
-    protected
-    function getSelectizeStatuses() {
+    protected function getSelectizeStatuses() {
         return Status::of( Ebook::class )->groupByLevel();
     }
 }
