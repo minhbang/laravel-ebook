@@ -45,14 +45,14 @@ class Presenter extends BasePresenter {
 
     /**
      * @param string|null $class
-     * @param bool $sm
+     * @param string $ver
      * @param bool $title
      * @param string $size
      *
      * @return string
      */
-    public function featured_image( $class = 'img-responsive', $sm = false, $title = false, $size = '_md' ) {
-        $src = $this->entity->featuredImageUrl( $sm );
+    public function featured_image( $class = 'img-responsive', $ver = '', $title = false, $size = '_md' ) {
+        $src = $this->entity->featuredImageUrl( $ver );
         $class = $class ? " class =\"$class\"" : '';
         $html = $title ? "<div class=\"title\">{$this->entity->title}</div>" : '';
         $width = $this->entity->config['featured_image']["width{$size}"];
@@ -66,7 +66,7 @@ class Presenter extends BasePresenter {
      * @return string
      */
     public function featured_image_lightbox() {
-        $img = $this->featured_image( '', true, false, '_sm' );
+        $img = $this->featured_image( '', 'sm-', false, '_sm' );
 
         return "<a href=\"{$this->entity->featured_image_url}\" data-lightbox=\"ebook-{$this->entity->id}\">{$img}</a>";
     }
