@@ -22,6 +22,15 @@ return [
      */
     'middleware'     => [ 'web', 'role:sys.admin' ],
 
+    'widgets' => [
+        'ebook_category' => [
+            'title' => 'trans::ebook::widget.ebook_category.title',
+            'description' => 'trans::ebook::widget.ebook_category.description',
+            'icon' => 'sitemap',
+            'class' => \Minhbang\Ebook\Widgets\EbookCategoryWidget::class,
+        ],
+    ],
+
     // Định nghĩa menus cho ebook
     'menus'          => [
         'backend.sidebar.content.ebook' => [
