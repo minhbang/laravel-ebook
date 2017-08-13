@@ -24,7 +24,7 @@
                         <div class="title">{{$ebook->title}}</div>
                     </a>
                     <div class="details">
-                        {{$ebook->writer_title}}<br>
+                        {{$ebook->present()->writer}}<br>
                         {{$publisher}}<br>
                         <small><i class="fa fa-calendar"></i> {{$ebook->present()->updatedAt}}</small>
                         <small><i class="fa fa-eye"></i> {{$ebook->hit}}</small>

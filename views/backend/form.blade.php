@@ -95,6 +95,20 @@
                                             <p class="help-block">{{ $errors->first('writer_id') }}</p>
                                         @endif
                                     </div>
+                                    <div class="form-group{{ $errors->has('writer2_id') ? ' has-error':'' }}">
+                                        {!! Form::label('writer2_id', trans('ebook::common.writer2_id'), ['class' => 'control-label']) !!}
+                                        {!! Form::select('writer2_id', $writers, null, ['data-creatable'=>'on', 'prompt'=>'', 'class' => 'form-control selectize']) !!}
+                                        @if($errors->has('writer2_id'))
+                                            <p class="help-block">{{ $errors->first('writer2_id') }}</p>
+                                        @endif
+                                    </div>
+                                    <div class="form-group{{ $errors->has('writer3_id') ? ' has-error':'' }}">
+                                        {!! Form::label('writer3_id', trans('ebook::common.writer3_id'), ['class' => 'control-label']) !!}
+                                        {!! Form::select('writer3_id', $writers, null, ['data-creatable'=>'on', 'prompt'=>'', 'class' => 'form-control selectize']) !!}
+                                        @if($errors->has('writer3_id'))
+                                            <p class="help-block">{{ $errors->first('writer3_id') }}</p>
+                                        @endif
+                                    </div>
                                     <div class="form-group tour_step12{{ $errors->has('pages') ? ' has-error':'' }}">
                                         {!! Form::label('pages', trans('ebook::common.pages'), ['class' =>
                                         'control-label'])

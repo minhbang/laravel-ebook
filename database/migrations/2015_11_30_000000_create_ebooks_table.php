@@ -23,6 +23,8 @@ class CreateEbooksTable extends Migration {
             $table->integer( 'language_id' )->unsigned()->nullable();
             $table->integer( 'security_id' )->unsigned()->nullable();
             $table->integer( 'writer_id' )->unsigned()->nullable();
+            $table->integer( 'writer2_id' )->unsigned()->nullable();
+            $table->integer( 'writer3_id' )->unsigned()->nullable();
             $table->integer( 'publisher_id' )->unsigned()->nullable();
             $table->integer( 'pplace_id' )->unsigned()->nullable();
             $table->integer( 'series_id' )->unsigned()->nullable();

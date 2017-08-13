@@ -14,22 +14,33 @@ use Minhbang\Status\StatusPresenter;
  * @property-read Ebook $entity
  * @package Minhbang\Ebook
  */
-class Presenter extends BasePresenter {
+class Presenter extends BasePresenter
+{
     use DatetimePresenter;
     use StatusPresenter;
 
     /**
      * @return null|string
      */
-    public function category() {
+    public function category()
+    {
         return $this->entity->category ? $this->entity->category->title : null;
     }
 
     /**
      * @return string
      */
-    public function summary() {
-        return str_limit( $this->entity->summary, setting( 'display.summary_limit' ) );
+    public function summary()
+    {
+        return str_limit($this->entity->summary, setting('display.summary_limit'));
+    }
+
+    /**
+     * @return string
+     */
+    public function writer()
+    {
+        return $this->entity->writer_title.($this->entity->writer2_title ? ', '.$this->entity->writer2_title : '').($this->entity->writer3_title ? ', '.$this->entity->writer3_title : '');
     }
 
     /**
@@ -37,10 +48,11 @@ class Presenter extends BasePresenter {
      *
      * @return string
      */
-    public function security( $except = null ) {
+    public function security($except = null)
+    {
         $css = $this->entity->security_params ?: 'default';
 
-        return $except && ( $css === $except ) ? '' : "<span class=\"label label-{$css}\">{$this->entity->security_title}</span>";
+        return $except && ($css === $except) ? '' : "<span class=\"label label-{$css}\">{$this->entity->security_title}</span>";
     }
 
     /**
@@ -51,8 +63,9 @@ class Presenter extends BasePresenter {
      *
      * @return string
      */
-    public function featured_image( $class = 'img-responsive', $ver = '', $title = false, $size = '_md' ) {
-        $src = $this->entity->featuredImageUrl( $ver );
+    public function featured_image($class = 'img-responsive', $ver = '', $title = false, $size = '_md')
+    {
+        $src = $this->entity->featuredImageUrl($ver);
         $class = $class ? " class =\"$class\"" : '';
         $html = $title ? "<div class=\"title\">{$this->entity->title}</div>" : '';
         $width = $this->entity->config['featured_image']["width{$size}"];
@@ -65,8 +78,9 @@ class Presenter extends BasePresenter {
     /**
      * @return string
      */
-    public function featured_image_lightbox() {
-        $img = $this->featured_image( '', 'sm-', false, '_sm' );
+    public function featured_image_lightbox()
+    {
+        $img = $this->featured_image('', 'sm-', false, '_sm');
 
         return "<a href=\"{$this->entity->featured_image_url}\" data-lightbox=\"ebook-{$this->entity->id}\">{$img}</a>";
     }
@@ -74,18 +88,15 @@ class Presenter extends BasePresenter {
     /**
      * @return string
      */
-    public function title_block() {
-        $title = $this->entity->isReady( 'update' ) ? Html::linkQuickUpdate(
-            $this->entity->id,
-            $this->entity->title,
-            [
-                'attr'      => 'title',
-                'title'     => trans( "ebook::common.title" ),
-                'class'     => 'w-lg',
-                'placement' => 'top',
-            ]
-        ) : $this->entity->title;
-        $info = "<small class='text-muted'>{$this->entity->writer_title}, " . trans( 'ebook::common.publisher_id_th' ) . ": {$this->entity->publisher_title}</small><br>";
+    public function title_block()
+    {
+        $title = $this->entity->isReady('update') ? Html::linkQuickUpdate($this->entity->id, $this->entity->title, [
+            'attr' => 'title',
+            'title' => trans("ebook::common.title"),
+            'class' => 'w-lg',
+            'placement' => 'top',
+        ]) : $this->entity->title;
+        $info = "<small class='text-muted'>{$this->writer()}, ".trans('ebook::common.publisher_id_th').": {$this->entity->publisher_title}</small><br>";
 
         //$info .= "<small class='text-muted'>{$this->fileicon()} {$this->filesize()} - {$this->createdAt()}</small>";
 
@@ -95,10 +106,10 @@ class Presenter extends BasePresenter {
     /**
      * @return string
      */
-    public function title_block_1() {
-        $title = '<a href="' . route( 'ilib.backend.ebook.show',
-                [ 'ebook' => $this->entity->id ] ) . '">' . $this->entity->title . '</a>';
-        $info = "<small class='text-muted'>- {$this->entity->writer_title}, " . trans( 'ebook::common.publisher_id_th' ) . ": {$this->entity->publisher_title}</small><br>";
+    public function title_block_1()
+    {
+        $title = '<a href="'.route('ilib.backend.ebook.show', ['ebook' => $this->entity->id]).'">'.$this->entity->title.'</a>';
+        $info = "<small class='text-muted'>- {$this->writer()}, ".trans('ebook::common.publisher_id_th').": {$this->entity->publisher_title}</small><br>";
 
         //$info .= "<small class='text-muted'>{$this->fileicon()} {$this->filesize()} - {$this->createdAt()}</small>";
         $info .= "<small class='text-muted'>- {$this->createdAt()}</small>";
@@ -115,12 +126,13 @@ class Presenter extends BasePresenter {
      *
      * @return string
      */
-    public function files( $viewRoute = 'backend.file.preview', $params = [] ) {
-        $files = $this->entity->files->map( function ( File $file ) use ( $viewRoute, $params ) {
-            return '<li>' . $file->forReturn( $viewRoute, $params )['title'] . '</li>';
-        } )->all();
+    public function files($viewRoute = 'backend.file.preview', $params = [])
+    {
+        $files = $this->entity->files->map(function (File $file) use ($viewRoute, $params) {
+            return '<li>'.$file->forReturn($viewRoute, $params)['title'].'</li>';
+        })->all();
 
-        return "<ol>" . implode( "", $files ) . "</ol>";
+        return "<ol>".implode("", $files)."</ol>";
     }
     /**
      * Ex: danh sách tài liệu liên quan, tài liệu mới nhất

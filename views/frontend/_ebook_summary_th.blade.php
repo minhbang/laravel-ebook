@@ -4,7 +4,7 @@
         {!! $ebook->present()->featured_image !!}
         <div class="details">
             <div class="inner">
-                {{$ebook->writer_title}}<br>
+                {{$ebook->present()->writer}}<br>
                 {!! $ebook->present()->fileicon !!} {!! $ebook->present()->filesize !!}
                 <i class="fa fa-eye"></i> {{$ebook->hit}}
             </div>

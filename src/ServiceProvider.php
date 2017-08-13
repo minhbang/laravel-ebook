@@ -31,10 +31,10 @@ class ServiceProvider extends BaseServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadRoutesFrom(__DIR__.'/routes.php');
         $this->publishes([
-                __DIR__.'/../views' => base_path('resources/views/vendor/ebook'),
-                __DIR__.'/../lang' => base_path('resources/lang/vendor/ebook'),
-                __DIR__.'/../config/ebook.php' => config_path('ebook.php'),
-            ]);
+            __DIR__.'/../views' => base_path('resources/views/vendor/ebook'),
+            __DIR__.'/../lang' => base_path('resources/lang/vendor/ebook'),
+            __DIR__.'/../config/ebook.php' => config_path('ebook.php'),
+        ]);
 
         $class = Ebook::class;
         // pattern filters
@@ -53,7 +53,10 @@ class ServiceProvider extends BaseServiceProvider
         Enum::register($class, [
             'language' => ['title' => 'trans::ebook::common.language_id', 'attr' => 'language_id'],
             'security' => ['title' => 'trans::ebook::common.security_id', 'attr' => 'security_id'],
-            'writer' => ['title' => 'trans::ebook::common.writer_id', 'attr' => 'writer_id'],
+            'writer' => [
+                'title' => 'trans::ebook::common.writer_id',
+                'attr' => ['writer_id', 'writer2_id', 'writer3_id'],
+            ],
             'publisher' => ['title' => 'trans::ebook::common.publisher_id', 'attr' => 'publisher_id'],
             'pplace' => ['title' => 'trans::ebook::common.pplace_id', 'attr' => 'pplace_id'],
         ]);

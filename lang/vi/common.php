@@ -19,6 +19,8 @@ return [
     'language_id'         => 'Ngôn ngữ',
     'security_id'         => 'Bảo mật',
     'writer_id'           => 'Tác giả',
+    'writer2_id'           => 'Tác giả 2',
+    'writer3_id'           => 'Tác giả 3',
     'publisher_id'        => 'Nhà xuất bản',
     'publisher_id_th'     => 'NXB',
     'pplace_id'           => 'Nơi xuất bản',

@@ -49,7 +49,7 @@
                 </tr>
                 <tr>
                     <td>{{ trans('ebook::common.writer_id') }}</td>
-                    <td><strong>{{ $ebook->writer_title }}</strong></td>
+                    <td><strong>{{ $ebook->present()->writer }}</strong></td>
                 </tr>
                 <tr>
                     <td>{{ trans('ebook::common.pages') }}</td>
