@@ -9,7 +9,7 @@ use Request;
 use Minhbang\Kit\Support\VnString;
 use Minhbang\File\File;
 use Minhbang\Kit\Extensions\DatatableBuilder as Builder;
-use Datatables;
+use DataTables;
 use CategoryManager;
 use Status;
 use Authority;
@@ -145,7 +145,7 @@ class BackendController extends BaseController {
                 ->searchWhereBetween( 'ebooks.updated_at', 'mb_date_vn2mysql' );
         }
 
-        return Datatables::of( $query )->setTransformer( new EbookTransformer( $this->route_prefix . 'backend' ) )->make( true );
+        return DataTables::of( $query )->setTransformer( new EbookTransformer( $this->route_prefix . 'backend' ) )->make( true );
     }
 
     /**
